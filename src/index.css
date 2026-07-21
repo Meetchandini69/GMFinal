@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #D4AF37;
+  --color-primary-foreground: #0A0A0A;
+  --color-background: #0A0A0A;
+  --color-foreground: #FAFAFA;
+  --color-card: #111111;
+  --color-card-foreground: #FAFAFA;
+  --color-muted: #1A1A1A;
+  --color-muted-foreground: #888888;
+  --color-border: rgba(255,255,255,0.08);
+  --color-input: #1A1A1A;
+  --color-ring: #D4AF37;
+  --color-destructive: #ef4444;
+  --color-destructive-foreground: #FAFAFA;
+
+  --font-sans: "Plus Jakarta Sans", sans-serif;
+  --font-serif: "Playfair Display", serif;
+
+  --radius: 0.5rem;
+}
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Utility classes used by existing components */
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4AF37 0%, #F5E27A 50%, #C8961E 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gold-glow {
+  box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+}
+
+.gold-glow:hover {
+  box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+}
