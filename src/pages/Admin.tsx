@@ -102,14 +102,7 @@ export default function Admin() {
     }
   };
 
-  const loadProfile = async (userId: number) => {
-    setProfileLoading(true);
-    setProfileDetail(null);
-    try {
-      const res = await apiFetch(`/api/admin/profile/${userId}`, {
-        credentials: 'include',
-      });
-      const loadProfile = async (userId: number) => {
+const loadProfile = async (userId: number) => {
   setProfileLoading(true);
   setProfileDetail(null);
 
@@ -122,17 +115,15 @@ export default function Admin() {
     }
 
     const data = await res.json();
-    console.log("PROFILE:", data);
+    console.log("PROFILE DATA:", data);
 
     setProfileDetail(data);
+  } catch (err) {
+    console.error("Profile load failed:", err);
   } finally {
     setProfileLoading(false);
   }
 };
-    } finally {
-      setProfileLoading(false);
-    }
-  };
 
   const handleSetCredentials = async () => {
     if (!credModal || !newPassword) return;
@@ -331,12 +322,20 @@ export default function Admin() {
                       variant="ghost"
                       className="h-8 w-8 p-0 text-muted-foreground"
                       onClick={() => {
+                        console.log("Expand clicked", sub);
+
                         if (expanded === sub.id) {
                           setExpanded(null);
                           setProfileDetail(null);
                         } else {
                           setExpanded(sub.id);
-                          if (sub.user_id) loadProfile(sub.user_id);
+
+                          if (sub.user_id) {
+                            console.log("Calling loadProfile", sub.user_id);
+                            loadProfile(sub.user_id);
+                          } else {
+                            console.log("No user_id found");
+                          }
                         }
                       }}
                     >
