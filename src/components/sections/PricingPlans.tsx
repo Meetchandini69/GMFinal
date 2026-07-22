@@ -1,81 +1,134 @@
 import React from 'react';
-import { Check } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 const PLANS = [
   {
-    name: 'CL Plan',
-    price: '₹5,000',
-    period: 'per month',
-    validity: '30 Days',
+    name: "Basic",
+    price: "Free",
+    period: "Forever",
+    description: "Start your gigolo journey at zero cost.",
     features: [
-      '7 Services per month',
-      'Rate ₹4,000–₹8,000 per meeting',
-      'Min 2 hrs service',
-      'Day timings only',
-      'Middle class clients',
-      'Age 25–55',
+      { text: "Create your public profile", included: true },
+      { text: "Appear in city search results", included: true },
+      { text: "Receive connection requests", included: true },
+      { text: "View women's full photos & details", included: false },
+      { text: "Direct WhatsApp contact access", included: false },
+      { text: "Priority placement in search", included: false },
     ],
-    highlight: false,
+    buttonText: "Register Free Now",
+    buttonVariant: "outline",
+    featured: false,
+    badge: null,
   },
   {
-    name: 'PL Plan',
-    price: '₹10,000',
-    period: 'per year',
-    validity: '365 Days',
+    name: "Gold",
+    price: "₹999",
+    period: "/ month",
+    description: "Unlock women's profiles & contact them directly.",
     features: [
-      '10 Services per month',
-      'Rate ₹5,000–₹18,000 per meeting',
-      'Min 2 hrs, max 24 hrs',
-      'Day & Night, any time',
-      'High class clients',
-      'Age 28–45',
+      { text: "Create your public profile", included: true },
+      { text: "Appear in city search results", included: true },
+      { text: "Receive connection requests", included: true },
+      { text: "View women's full photos & details", included: true },
+      { text: "Direct WhatsApp contact access", included: true },
+      { text: "Priority placement in search", included: false },
     ],
-    highlight: true,
+    buttonText: "Get Gold — Start Earning",
+    buttonVariant: "default",
+    featured: true,
+    badge: "Most Popular",
+  },
+  {
+    name: "Platinum",
+    price: "₹2,499",
+    period: "/ month",
+    description: "Top placement. VIP women. Maximum earnings.",
+    features: [
+      { text: "Create your public profile", included: true },
+      { text: "Appear in city search results", included: true },
+      { text: "Receive connection requests", included: true },
+      { text: "View women's full photos & details", included: true },
+      { text: "Direct WhatsApp contact access", included: true },
+      { text: "Priority placement in search", included: true },
+    ],
+    buttonText: "Go Platinum — Earn More",
+    buttonVariant: "outline",
+    featured: false,
+    badge: null,
   },
 ];
 
 export function PricingPlans() {
   return (
-    <section id="pricing" className="py-20 bg-card border-t border-white/5">
+    <section className="py-24 bg-card" id="pricing">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="text-center mb-14">
+        <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-            Membership <span className="text-gradient-gold">Plans</span>
+            Choose Your <span className="text-primary">Gigolo Membership</span>
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">Choose your plan. Once selected, upgrades are not possible — choose wisely.</p>
+          <p className="text-muted-foreground max-w-2xl mx-auto">
+            Start free, upgrade when you're ready to unlock women's full profiles and direct contact. The Gold plan pays for itself with a single meeting.
+          </p>
         </div>
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {PLANS.map((plan) => (
-            <div key={plan.name} className={`rounded-xl border p-8 ${plan.highlight ? 'border-primary/60 bg-primary/5 shadow-[0_0_40px_rgba(212,175,55,0.1)]' : 'border-white/10 bg-background'}`}>
-              {plan.highlight && (
-                <span className="inline-block bg-primary text-black text-xs font-bold px-3 py-1 rounded-full mb-4">Recommended</span>
+            <div
+              key={plan.name}
+              className={`rounded-3xl p-8 relative flex flex-col ${
+                plan.featured
+                  ? 'bg-background border-2 border-primary shadow-[0_0_40px_rgba(212,175,55,0.15)] transform md:-translate-y-4'
+                  : 'bg-background border border-white/10'
+              }`}
+            >
+              {plan.badge && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-sm font-bold px-4 py-1.5 rounded-full uppercase tracking-wider">
+                  {plan.badge}
+                </div>
               )}
-              <h3 className="text-white font-bold text-xl mb-1">{plan.name}</h3>
-              <div className="mb-1">
-                <span className="text-primary text-3xl font-bold">{plan.price}</span>
-                <span className="text-muted-foreground text-sm ml-1">{plan.period}</span>
+
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-white mb-2">{plan.name}</h3>
+                <p className="text-muted-foreground text-sm h-10">{plan.description}</p>
+                <div className="mt-4 flex items-end gap-1">
+                  <span className="text-4xl font-bold text-white">{plan.price}</span>
+                  <span className="text-muted-foreground mb-1">{plan.period}</span>
+                </div>
               </div>
-              <p className="text-muted-foreground text-sm mb-6">Validity: {plan.validity}</p>
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((f, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-white">
-                    <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    {f}
+
+              <ul className="space-y-4 mb-8 flex-1">
+                {plan.features.map((feature, i) => (
+                  <li key={i} className="flex items-center">
+                    {feature.included ? (
+                      <Check className="w-5 h-5 text-primary mr-3 shrink-0" />
+                    ) : (
+                      <X className="w-5 h-5 text-muted-foreground/50 mr-3 shrink-0" />
+                    )}
+                    <span className={feature.included ? 'text-gray-300' : 'text-muted-foreground/50'}>
+                      {feature.text}
+                    </span>
                   </li>
                 ))}
               </ul>
+
               <Button
-                className={`w-full ${plan.highlight ? 'bg-primary text-black gold-glow' : 'bg-white/10 text-white hover:bg-white/20'}`}
-                onClick={() => document.getElementById('register')?.scrollIntoView({ behavior: 'smooth' })}
+                className={`w-full h-12 font-semibold ${
+                  plan.featured
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                    : 'border-primary/50 text-white hover:bg-primary/10'
+                }`}
+                variant={plan.buttonVariant as any}
+                asChild
               >
-                Join {plan.name}
+                <a href="#register">{plan.buttonText}</a>
               </Button>
             </div>
           ))}
         </div>
-        <p className="text-center text-muted-foreground text-xs mt-8">
-          We accept UPI payment via PhonePe, Google Pay (GPay), PayTM, Bhim App. No security deposits or hidden charges.
+
+        <p className="text-center text-muted-foreground text-sm mt-8">
+          💡 Gold plan pays for itself — a single meeting earns you 5–10× the membership cost.
         </p>
       </div>
     </section>
