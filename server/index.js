@@ -7,12 +7,24 @@ import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { mkdirSync } from 'fs';
 import path from 'path';
+import fs from "fs";
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import pool from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
+
+// 👇 Temporary debug logs
+console.log("=================================");
+console.log("UPLOADS_DIR:", UPLOADS_DIR);
+console.log("Exists:", fs.existsSync(UPLOADS_DIR));
+
+if (fs.existsSync(UPLOADS_DIR)) {
+  console.log("Files:", fs.readdirSync(UPLOADS_DIR));
+}
+console.log("=================================");
+
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
 const storage = multer.diskStorage({
