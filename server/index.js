@@ -31,6 +31,7 @@ const upload = multer({
 });
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = 3001;
 const IS_PROD = process.env.NODE_ENV === 'production';
 
@@ -68,8 +69,8 @@ app.use(session({
   saveUninitialized: false,
   cookie: {
     httpOnly: true,
-    sameSite: 'lax',
-    secure: IS_PROD,             // HTTPS-only in production
+    secure: true,          // Always true in production (HTTPS)
+    sameSite: 'none',      // Required for cross-domain cookies
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));
