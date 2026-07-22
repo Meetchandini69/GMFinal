@@ -115,7 +115,8 @@ const loadProfile = async (userId: number) => {
     }
 
     const data = await res.json();
-    console.log("PROFILE DATA:", data);
+    console.log("PHOTO URL =", data.photo_url);
+    console.log("PROFILE =", data);
 
     setProfileDetail(data);
   } catch (err) {
