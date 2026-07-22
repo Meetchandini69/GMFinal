@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
 import PhotoUploader from '@/components/PhotoUploader';
 import WomenTab from '@/components/WomenTab';
+import { getImageUrl } from "@/lib/api";
 
 type Profile = {
   user_id?: number;
@@ -416,7 +417,7 @@ export default function Dashboard() {
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
                     {profile.photo_url
-                      ? <img src={profile.photo_url} alt="Profile" className="w-full h-full object-cover rounded-full" />
+                      ? <img src={getImageUrl(profile.photo_url)} alt="Profile" className="w-full h-full object-cover rounded-full" />
                       : <User className="w-6 h-6 text-primary" />
                     }
                   </div>
@@ -427,7 +428,7 @@ export default function Dashboard() {
                 </div>
                 {editing && (
                   <PhotoUploader
-                    currentUrl={profile.photo_url}
+                    currentUrl={getImageUrl(profile.photo_url)}
                     onUploadSuccess={url => update('photo_url', url)}
                   />
                 )}
