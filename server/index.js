@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
-import connectPgSimple from 'connect-pg-simple';   // <-- Add this
+import connectPgSimple from 'connect-pg-simple';   // <-- Add thiss
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
