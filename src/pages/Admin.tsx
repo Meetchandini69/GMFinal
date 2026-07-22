@@ -106,9 +106,29 @@ export default function Admin() {
     setProfileLoading(true);
     setProfileDetail(null);
     try {
-      const res = await fetch(`/api/admin/profile/${userId}`, { credentials: 'include' });
-      const data = await res.json();
-      setProfileDetail(data);
+      const res = await apiFetch(`/api/admin/profile/${userId}`, {
+        credentials: 'include',
+      });
+      const loadProfile = async (userId: number) => {
+  setProfileLoading(true);
+  setProfileDetail(null);
+
+  try {
+    const res = await apiFetch(`/api/admin/profile/${userId}`);
+
+    if (!res.ok) {
+      console.error(await res.text());
+      return;
+    }
+
+    const data = await res.json();
+    console.log("PROFILE:", data);
+
+    setProfileDetail(data);
+  } finally {
+    setProfileLoading(false);
+  }
+};
     } finally {
       setProfileLoading(false);
     }

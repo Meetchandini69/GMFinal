@@ -98,8 +98,6 @@ async function sendTelegram(text) {
 
 // ── Auth guards ────────────────────────────────────────────────────────────
 function requireAdmin(req, res, next) {
-  console.log("CHECK SESSION ID:", req.sessionID);
-  console.log("CHECK SESSION:", req.session);
 
   if (req.session?.isAdmin) return next();
 
@@ -208,8 +206,6 @@ app.post('/api/admin/login', (req, res) => {
 
   req.session.isAdmin = true;
 
-  console.log("LOGIN SESSION ID:", req.sessionID);
-  console.log("LOGIN SESSION:", req.session);
 
   req.session.save((err) => {
     if (err) {
