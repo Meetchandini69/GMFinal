@@ -8,6 +8,7 @@ import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
+import { getImageUrl } from "@/lib/api";
 
 type Submission = {
   id: number;
@@ -407,7 +408,7 @@ const loadProfile = async (userId: number) => {
                         {profileDetail.photo_url && (
                           <div className="mt-3">
                             <p className="text-muted-foreground text-xs mb-2">Photo</p>
-                            <img src={profileDetail.photo_url} alt="Profile" className="w-24 h-24 object-cover rounded-xl border border-white/10" />
+                            <img src={getImageUrl(profileDetail.photo_url)} alt="Profile" className="w-24 h-24 object-cover rounded-xl border border-white/10" />
                           </div>
                         )}
                       </div>
