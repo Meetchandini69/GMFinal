@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';   // <-- Add this
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
@@ -63,14 +64,23 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+const PgSession = connectPgSimple(session);
+
 app.use(session({
+  store: new PgSession({
+    pool,
+    tableName: "user_sessions",
+    createTableIfMissing: true,
+  }),
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
+  proxy: true,
   cookie: {
     httpOnly: true,
-    secure: true,          // Always true in production (HTTPS)
-    sameSite: 'none',      // Required for cross-domain cookies
+    secure: IS_PROD,
+    sameSite: IS_PROD ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));
@@ -88,8 +98,12 @@ async function sendTelegram(text) {
 
 // ── Auth guards ────────────────────────────────────────────────────────────
 function requireAdmin(req, res, next) {
+  console.log("CHECK SESSION ID:", req.sessionID);
+  console.log("CHECK SESSION:", req.session);
+
   if (req.session?.isAdmin) return next();
-  return res.status(401).json({ error: 'Unauthorized' });
+
+  return res.status(401).json({ error: "Unauthorized" });
 }
 
 function requireUser(req, res, next) {
@@ -185,13 +199,26 @@ app.get('/api/auth/me', async (req, res) => {
 });
 
 // Admin login
-app.post('/api/admin/login', async (req, res) => {
+app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
-  if (password === ADMIN_PASSWORD) {
-    req.session.isAdmin = true;
-    return res.json({ ok: true });
+
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Invalid admin password' });
   }
-  res.status(401).json({ error: 'Invalid admin password' });
+
+  req.session.isAdmin = true;
+
+  console.log("LOGIN SESSION ID:", req.sessionID);
+  console.log("LOGIN SESSION:", req.session);
+
+  req.session.save((err) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Session save failed" });
+    }
+
+    res.json({ ok: true });
+  });
 });
 
 // Admin logout
