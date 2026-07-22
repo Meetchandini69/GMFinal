@@ -15,6 +15,9 @@ import pool from './db.js';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
 
+console.log("__dirname =", __dirname);
+console.log("UPLOADS_DIR =", UPLOADS_DIR);
+
 // 👇 Temporary debug logs
 console.log("=================================");
 console.log("UPLOADS_DIR:", UPLOADS_DIR);
@@ -241,6 +244,12 @@ app.post('/api/admin/logout', (req, res) => {
 
 // Photo upload
 app.post('/api/user/upload-photo', requireUser, upload.single('photo'), async (req, res) => {
+  console.log("Saved:", req.file.path);
+
+  console.log(
+    "Current uploads:",
+    fs.readdirSync(UPLOADS_DIR)
+  );
   if (!req.file) return res.status(400).json({ error: 'No file received' });
   const url = `/uploads/${req.file.filename}`;
   try {
