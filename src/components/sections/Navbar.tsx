@@ -84,11 +84,8 @@ export function Navbar() {
       >
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between">
-            <a href="#" onClick={(e) => { e.preventDefault(); scrollTo('#'); }} className="flex items-center gap-2 group">
-              <Crown className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
-              <span className="font-serif text-xl md:text-2xl font-bold tracking-tight text-white group-hover:text-primary transition-colors">
-                GigoloMeet<span className="text-primary">.in</span>
-              </span>
+            <a href="#" onClick={(e) => { e.preventDefault(); scrollTo('#'); }} className="w-50 h-15 flex items-center gap-2 group">
+              <img src="/logo.svg" alt="Gigolo Service" className="w-full h-full object-contain" />
             </a>
 
             {/* Desktop Nav */}
