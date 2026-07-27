@@ -35,8 +35,6 @@ type Profile = {
   alt_mobile?: string;
   more_info?: string;
   joining_plan?: string;
-  date_of_paying?: string;
-  payment_mode?: string;
   photo_url?: string;
   member_status?: string;
   profile_step?: number;
@@ -53,7 +51,6 @@ const STATES = ['Tamil Nadu', 'Maharashtra', 'Delhi', 'Karnataka', 'Telangana', 
 const CITIES = ['Chennai', 'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Coimbatore', 'Pune', 'Lucknow', 'Other'];
 const COMPLEXIONS = ['Very Fair', 'Fair', 'Wheatish', 'Brown', 'Dark'];
 const CATEGORIES = ['Gigolo', 'Playboy', 'Male Escort'];
-const PAYMENT_MODES = ['Google Pay (GPay)', 'PhonePe', 'PayTM', 'Bhim App', 'UPI'];
 const JOINING_PLANS = [
   { value: '1 Month Plan', title: '1 Month Plan - Rs. 2,500', description: 'Valid for 1 month' },
   { value: '2 Months Plan', title: '2 Months Plan - Rs. 4,000', description: 'Valid for 2 months' },
@@ -347,7 +344,6 @@ export default function Dashboard() {
                     { label: 'Weight', value: profile.weight ? `${profile.weight} kg` : undefined, icon: Weight },
                     { label: 'Complexion', value: profile.complexion, icon: User },
                     { label: 'Joining Plan', value: profile.joining_plan, icon: FileText },
-                    { label: 'Payment Mode', value: profile.payment_mode, icon: FileText },
                   ].map(({ label, value, icon: Icon }) => value ? (
                     <div key={label} className="flex items-start gap-2">
                       <Icon className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -381,8 +377,6 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-white/5">
                       {[
                         ['Joining Fees', getJoiningPlanFee(profile.joining_plan)],
-                        ['Date of Paying', profile.date_of_paying || '—'],
-                        ['Payment Mode', profile.payment_mode || '—'],
                         ['Telegram', 'Pay on 7597246320'],
                       ].map(([k, v]) => (
                         <tr key={k}>
@@ -592,22 +586,6 @@ export default function Dashboard() {
                         <span className={profile.joining_plan ? 'text-primary font-semibold' : ''}>{profile.joining_plan || '—'}</span>
                       )}
                     </Field>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <Field label="Date of Paying Fees" editing={editing}>
-                        {editing
-                          ? <Input type="date" value={profile.date_of_paying || ''} onChange={e => update('date_of_paying', e.target.value)} className="h-10 bg-background border-white/10 text-white" />
-                          : <span>{profile.date_of_paying || '—'}</span>}
-                      </Field>
-                      <Field label="Payment Mode" editing={editing}>
-                        {editing
-                          ? <Select value={profile.payment_mode || ''} onValueChange={v => update('payment_mode', v)}>
-                              <SelectTrigger className="h-10 bg-background border-white/10 text-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                              <SelectContent className="bg-card border-white/10">{PAYMENT_MODES.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                            </Select>
-                          : <span>{profile.payment_mode || '—'}</span>}
-                      </Field>
-                    </div>
 
                     {editing && (
                       <div className="flex items-start gap-2 p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">

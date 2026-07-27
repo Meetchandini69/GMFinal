@@ -40,8 +40,6 @@ type Profile = {
   alt_mobile?: string;
   more_info?: string;
   joining_plan?: string;
-  date_of_paying?: string;
-  payment_mode?: string;
   photo_url?: string;
   member_status?: string;
   submitted_at?: string;
@@ -390,8 +388,6 @@ const loadProfile = async (userId: number) => {
                             ['Email', profileDetail.email],
                             ['Alt Mobile', profileDetail.alt_mobile],
                             ['Joining Plan', profileDetail.joining_plan],
-                            ['Date of Paying', profileDetail.date_of_paying],
-                            ['Payment Mode', profileDetail.payment_mode],
                           ].filter(([, v]) => v).map(([k, v]) => (
                             <div key={k as string}>
                               <p className="text-muted-foreground text-xs">{k}</p>
