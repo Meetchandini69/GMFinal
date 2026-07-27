@@ -33,7 +33,7 @@ const FAQS = [
   },
   {
     question: "How do I get my first meeting request?",
-    answer: "Once your profile is verified and live, women in your city can see and contact you. Complete your profile with a good bio and clear photos to attract more requests. Gold members get priority placement and typically receive their first request within 1–3 days of going live."
+    answer: "Once your profile is verified and live, women in your city can see and contact you. Complete your profile with a good bio and clear photos to attract more requests. Active members typically receive their first request within 1-3 days of going live."
   },
   {
     question: "How do I get paid? Is the money real?",

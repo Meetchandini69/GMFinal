@@ -54,6 +54,25 @@ const CITIES = ['Chennai', 'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Kolkata
 const COMPLEXIONS = ['Very Fair', 'Fair', 'Wheatish', 'Brown', 'Dark'];
 const CATEGORIES = ['Gigolo', 'Playboy', 'Male Escort'];
 const PAYMENT_MODES = ['Google Pay (GPay)', 'PhonePe', 'PayTM', 'Bhim App', 'UPI'];
+const JOINING_PLANS = [
+  { value: '1 Month Plan', title: '1 Month Plan - Rs. 2,500', description: 'Valid for 1 month' },
+  { value: '2 Months Plan', title: '2 Months Plan - Rs. 4,000', description: 'Valid for 2 months' },
+  { value: '6 Months Plan', title: '6 Months Plan - Rs. 9,000', description: 'Valid for 6 months' },
+  { value: '1 Year Plan', title: '1 Year Plan - Rs. 12,000', description: 'Valid for 1 year' },
+];
+
+const getJoiningPlanFee = (plan?: string) => {
+  const fees: Record<string, string> = {
+    '1 Month Plan': 'Rs. 2,500 (1 Month Plan)',
+    '2 Months Plan': 'Rs. 4,000 (2 Months Plan)',
+    '6 Months Plan': 'Rs. 9,000 (6 Months Plan)',
+    '1 Year Plan': 'Rs. 12,000 (1 Year Plan)',
+    'CL Plan': 'Rs. 5,000 (CL Plan)',
+    'PL Plan': 'Rs. 10,000 (PL Plan)',
+  };
+
+  return plan ? fees[plan] || plan : '---';
+};
 
 export default function Dashboard() {
   const [, navigate] = useLocation();
@@ -361,7 +380,7 @@ export default function Dashboard() {
                   <table className="w-full text-sm">
                     <tbody className="divide-y divide-white/5">
                       {[
-                        ['Joining Fees', profile.joining_plan === 'CL Plan' ? '₹5,000 (CL Plan)' : '₹10,000 (PL Plan)'],
+                        ['Joining Fees', getJoiningPlanFee(profile.joining_plan)],
                         ['Date of Paying', profile.date_of_paying || '—'],
                         ['Payment Mode', profile.payment_mode || '—'],
                         ['Telegram', 'Pay on 7597246320'],
@@ -555,20 +574,19 @@ export default function Dashboard() {
                     <Field label="Joining Plan" editing={editing}>
                       {editing ? (
                         <RadioGroup value={profile.joining_plan || ''} onValueChange={v => update('joining_plan', v)} className="flex flex-col gap-3">
-                          <div className="flex items-center gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-primary/40">
-                            <RadioGroupItem value="CL Plan" id="cl" />
-                            <Label htmlFor="cl" className="cursor-pointer flex-1">
-                              <span className="text-white font-medium">CL Plan — ₹5,000/month</span>
-                              <span className="block text-xs text-muted-foreground">Middle class clients, 7 services/month, day timings</span>
-                            </Label>
-                          </div>
-                          <div className="flex items-center gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-primary/40">
-                            <RadioGroupItem value="PL Plan" id="pl" />
-                            <Label htmlFor="pl" className="cursor-pointer flex-1">
-                              <span className="text-white font-medium">PL Plan — ₹10,000/year</span>
-                              <span className="block text-xs text-muted-foreground">High class clients, 10 services/month, anytime</span>
-                            </Label>
-                          </div>
+                          {JOINING_PLANS.map((plan, index) => {
+                            const id = `joining-plan-${index}`;
+
+                            return (
+                              <div key={plan.value} className="flex items-center gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-primary/40">
+                                <RadioGroupItem value={plan.value} id={id} />
+                                <Label htmlFor={id} className="cursor-pointer flex-1">
+                                  <span className="text-white font-medium">{plan.title}</span>
+                                  <span className="block text-xs text-muted-foreground">{plan.description}</span>
+                                </Label>
+                              </div>
+                            );
+                          })}
                         </RadioGroup>
                       ) : (
                         <span className={profile.joining_plan ? 'text-primary font-semibold' : ''}>{profile.joining_plan || '—'}</span>
@@ -648,4 +666,3 @@ function Field({ label, editing, children }: { label: string; editing?: boolean;
     </div>
   );
 }
-

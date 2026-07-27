@@ -4,58 +4,68 @@ import { Button } from '@/components/ui/button';
 
 const PLANS = [
   {
-    name: "Basic",
-    price: "Free",
-    period: "Forever",
-    description: "Start your gigolo journey at zero cost.",
+    name: "1 Month",
+    price: "Rs. 2,500",
+    period: "/ month",
+    description: "Short-term membership plan.",
     features: [
       { text: "Create your public profile", included: true },
       { text: "Appear in city search results", included: true },
       { text: "Receive connection requests", included: true },
-      { text: "View women's full photos & details", included: false },
-      { text: "Direct WhatsApp contact access", included: false },
-      { text: "Priority placement in search", included: false },
+      { text: "Valid for 1 month", included: true },
     ],
-    buttonText: "Register Free Now",
+    buttonText: "Choose 1 Month",
     buttonVariant: "outline",
     featured: false,
     badge: null,
   },
   {
-    name: "Gold",
-    price: "₹999",
-    period: "/ month",
-    description: "Unlock women's profiles & contact them directly.",
+    name: "2 Months",
+    price: "Rs. 4,000",
+    period: "/ 2 months",
+    description: "Better value for two months.",
     features: [
       { text: "Create your public profile", included: true },
       { text: "Appear in city search results", included: true },
       { text: "Receive connection requests", included: true },
-      { text: "View women's full photos & details", included: true },
-      { text: "Direct WhatsApp contact access", included: true },
-      { text: "Priority placement in search", included: false },
+      { text: "Valid for 2 months", included: true },
     ],
-    buttonText: "Get Gold — Start Earning",
+    buttonText: "Choose 2 Months",
     buttonVariant: "default",
     featured: true,
-    badge: "Most Popular",
+    badge: "Popular",
   },
   {
-    name: "Platinum",
-    price: "₹2,499",
-    period: "/ month",
-    description: "Top placement. VIP women. Maximum earnings.",
+    name: "6 Months",
+    price: "Rs. 9,000",
+    period: "/ 6 months",
+    description: "Longer plan with stronger savings.",
     features: [
       { text: "Create your public profile", included: true },
       { text: "Appear in city search results", included: true },
       { text: "Receive connection requests", included: true },
-      { text: "View women's full photos & details", included: true },
-      { text: "Direct WhatsApp contact access", included: true },
-      { text: "Priority placement in search", included: true },
+      { text: "Valid for 6 months", included: true },
     ],
-    buttonText: "Go Platinum — Earn More",
+    buttonText: "Choose 6 Months",
     buttonVariant: "outline",
     featured: false,
     badge: null,
+  },
+  {
+    name: "1 Year",
+    price: "Rs. 12,000",
+    period: "/ year",
+    description: "Best value annual membership.",
+    features: [
+      { text: "Create your public profile", included: true },
+      { text: "Appear in city search results", included: true },
+      { text: "Receive connection requests", included: true },
+      { text: "Valid for 1 year", included: true },
+    ],
+    buttonText: "Choose 1 Year",
+    buttonVariant: "outline",
+    featured: false,
+    badge: "Best Value",
   },
 ];
 
@@ -68,11 +78,11 @@ export function PricingPlans() {
             Choose Your <span className="text-primary">Gigolo Membership</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Start free, upgrade when you're ready to unlock women's full profiles and direct contact. The Gold plan pays for itself with a single meeting.
+            Select the membership duration that works best for you and complete your profile after registration.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8 max-w-7xl mx-auto">
           {PLANS.map((plan) => (
             <div
               key={plan.name}
@@ -128,7 +138,7 @@ export function PricingPlans() {
         </div>
 
         <p className="text-center text-muted-foreground text-sm mt-8">
-          💡 Gold plan pays for itself — a single meeting earns you 5–10× the membership cost.
+          Complete registration first, then choose any one membership plan from your dashboard.
         </p>
       </div>
     </section>
