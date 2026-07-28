@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import { MapPin, Lock, MessageCircle, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const MODEL_PHOTOS = [
+  '/models/gigolo-girl-1.jpeg',
+  '/models/gigolo-girl-2.jpeg',
+  '/models/gigolo-girl-3.jpeg',
+  '/models/gigolo-girl-4.jpeg',
+  '/models/gigolo-girl-5.jpeg',
+  '/models/gigolo-girl-6.jpeg',
+  '/models/gigolo-girl-7.jpeg',
+  '/models/gigolo-girl-8.jpeg',
+];
+
 const PROFILES = [
   {
     id: 1,
@@ -13,7 +24,7 @@ const PROFILES = [
     statusLabel: "Divorced",
     tagline: "I am looking for a genuine long-term relationship with a caring, fun man.",
     detail: "Age pref: 25–38 • Weekends free • Loves travel",
-    photo: "https://randomuser.me/api/portraits/women/44.jpg",
+    photo: MODEL_PHOTOS[0],
     online: true,
     reward: "Willing to pay ₹8,000/meet",
   },
@@ -26,7 +37,7 @@ const PROFILES = [
     statusLabel: "Widow",
     tagline: "Life is short — want to enjoy quality time with a charming man who makes me smile.",
     detail: "Age pref: 28–42 • Evenings & weekends • Loves dining out",
-    photo: "https://randomuser.me/api/portraits/women/47.jpg",
+    photo: MODEL_PHOTOS[1],
     online: true,
     reward: "Willing to pay ₹12,000/meet",
   },
@@ -39,7 +50,7 @@ const PROFILES = [
     statusLabel: "Single",
     tagline: "Young professional, busy schedule — want someone fun & no-strings weekend company.",
     detail: "Age pref: 24–35 • Flexible timing • Loves adventure",
-    photo: "https://randomuser.me/api/portraits/women/52.jpg",
+    photo: MODEL_PHOTOS[2],
     online: false,
     reward: "Willing to pay ₹6,000/meet",
   },
@@ -52,7 +63,7 @@ const PROFILES = [
     statusLabel: "Separated",
     tagline: "Mature woman seeking affectionate man for regular meetups and genuine companionship.",
     detail: "Age pref: 28–45 • Afternoons • Homely type preferred",
-    photo: "https://randomuser.me/api/portraits/women/68.jpg",
+    photo: MODEL_PHOTOS[3],
     online: true,
     reward: "Willing to pay ₹10,000/meet",
   },
@@ -65,7 +76,7 @@ const PROFILES = [
     statusLabel: "Divorced",
     tagline: "Went through a bad marriage — just want joy, laughter and good company now.",
     detail: "Age pref: 26–40 • Weekends • Soft-spoken men preferred",
-    photo: "https://randomuser.me/api/portraits/women/33.jpg",
+    photo: MODEL_PHOTOS[4],
     online: true,
     reward: "Willing to pay ₹7,500/meet",
   },
@@ -78,7 +89,7 @@ const PROFILES = [
     statusLabel: "Single",
     tagline: "Looking for a confident, stylish man to go on exciting dates and make memories.",
     detail: "Age pref: 23–34 • Evenings • Fitness-oriented preferred",
-    photo: "https://randomuser.me/api/portraits/women/26.jpg",
+    photo: MODEL_PHOTOS[5],
     online: false,
     reward: "Willing to pay ₹5,500/meet",
   },
@@ -91,7 +102,7 @@ const PROFILES = [
     statusLabel: "Widow",
     tagline: "Feeling lonely after years — want a warm, respectful man for long-term companionship.",
     detail: "Age pref: 30–45 • Any time • Educated men preferred",
-    photo: "https://randomuser.me/api/portraits/women/57.jpg",
+    photo: MODEL_PHOTOS[6],
     online: true,
     reward: "Willing to pay ₹9,000/meet",
   },
@@ -104,7 +115,7 @@ const PROFILES = [
     statusLabel: "Separated",
     tagline: "Husband left me — life goes on. Seeking a fun, caring gigolo for regular companionship.",
     detail: "Age pref: 27–42 • Flexible • Sense of humour essential",
-    photo: "https://randomuser.me/api/portraits/women/63.jpg",
+    photo: MODEL_PHOTOS[7],
     online: true,
     reward: "Willing to pay ₹8,500/meet",
   }

@@ -3,6 +3,21 @@ import { MapPin, Heart, X, Clock, Check, RotateCcw, Frown } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
+const MODEL_PHOTOS = [
+  '/models/gigolo-girl-1.jpeg',
+  '/models/gigolo-girl-2.jpeg',
+  '/models/gigolo-girl-3.jpeg',
+  '/models/gigolo-girl-4.jpeg',
+  '/models/gigolo-girl-5.jpeg',
+  '/models/gigolo-girl-6.jpeg',
+  '/models/gigolo-girl-7.jpeg',
+  '/models/gigolo-girl-8.jpeg',
+  '/models/gigolo-girl-9.jpeg',
+  '/models/gigolo-girl-10.jpeg',
+  '/models/gigolo-girl-11.jpeg',
+  '/models/gigolo-girl-12.jpeg',
+];
+
 type Woman = {
   id: number;
   name: string;
@@ -174,8 +189,22 @@ export default function WomenTab() {
       apiFetch('/api/user/women', { credentials: 'include' }),
       apiFetch('/api/user/swipe-history', { credentials: 'include' }),
     ]);
-    if (wRes.ok) setWomen(await wRes.json());
-    if (hRes.ok) setHistory(await hRes.json());
+    if (wRes.ok) {
+      const data = await wRes.json();
+      const mapped = data.map((w: any, i: number) => ({
+        ...w,
+        photo_url: (w.photo_url && w.photo_url.startsWith('/models/')) ? w.photo_url : MODEL_PHOTOS[i % MODEL_PHOTOS.length],
+      }));
+      setWomen(mapped);
+    }
+    if (hRes.ok) {
+      const hist = await hRes.json();
+      const mappedH = hist.map((h: any, i: number) => ({
+        ...h,
+        photo_url: (h.photo_url && h.photo_url.startsWith('/models/')) ? h.photo_url : MODEL_PHOTOS[i % MODEL_PHOTOS.length],
+      }));
+      setHistory(mappedH);
+    }
     setLoading(false);
   };
 

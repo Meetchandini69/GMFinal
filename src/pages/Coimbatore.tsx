@@ -12,13 +12,20 @@ import {
 
 /* ─────────────────────────── data ─────────────────────────── */
 
+const MODEL_PHOTOS = [
+  '/models/gigolo-girl-1.jpeg',
+  '/models/gigolo-girl-2.jpeg',
+  '/models/gigolo-girl-3.jpeg',
+  '/models/gigolo-girl-4.jpeg',
+];
+
 const CBE_PROFILES = [
   {
     id: 1, name: "Lakshmi A.", age: 34, area: "RS Puram",
     status: "divorced", statusLabel: "Divorced",
     tagline: "Looking for a caring, fun man for regular weekend companionship in Coimbatore.",
     detail: "Age pref: 26–40 • Weekends • Well-groomed preferred",
-    photo: "https://randomuser.me/api/portraits/women/44.jpg",
+    photo: MODEL_PHOTOS[0],
     online: true, reward: "Willing to pay ₹9,000/meet",
   },
   {
@@ -26,7 +33,7 @@ const CBE_PROFILES = [
     status: "widow", statusLabel: "Widow",
     tagline: "Lonely after a long time. Want warmth, fun and no-pressure companionship.",
     detail: "Age pref: 30–45 • Evenings • Educated men preferred",
-    photo: "https://randomuser.me/api/portraits/women/68.jpg",
+    photo: MODEL_PHOTOS[1],
     online: true, reward: "Willing to pay ₹11,000/meet",
   },
   {
@@ -34,7 +41,7 @@ const CBE_PROFILES = [
     status: "single", statusLabel: "Single",
     tagline: "Busy IT professional wanting fun dates and good company on weekends.",
     detail: "Age pref: 24–35 • Flexible • Fitness-oriented preferred",
-    photo: "https://randomuser.me/api/portraits/women/26.jpg",
+    photo: MODEL_PHOTOS[2],
     online: false, reward: "Willing to pay ₹6,500/meet",
   },
   {
@@ -42,7 +49,7 @@ const CBE_PROFILES = [
     status: "separated", statusLabel: "Separated",
     tagline: "Seeking a genuine, affectionate gigolo for long-term company in Coimbatore.",
     detail: "Age pref: 28–42 • Afternoons • Homely type preferred",
-    photo: "https://randomuser.me/api/portraits/women/52.jpg",
+    photo: MODEL_PHOTOS[3],
     online: true, reward: "Willing to pay ₹8,500/meet",
   },
 ];

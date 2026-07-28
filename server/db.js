@@ -90,19 +90,33 @@ await pool.query(`
 // ── Seed women profiles ────────────────────────────────────────────────────
 const { rows } = await pool.query('SELECT COUNT(*) AS n FROM women');
 if (parseInt(rows[0].n, 10) === 0) {
+  const modelPhotos = [
+    '/models/gigolo-girl-1.jpeg',
+    '/models/gigolo-girl-2.jpeg',
+    '/models/gigolo-girl-3.jpeg',
+    '/models/gigolo-girl-4.jpeg',
+    '/models/gigolo-girl-5.jpeg',
+    '/models/gigolo-girl-6.jpeg',
+    '/models/gigolo-girl-7.jpeg',
+    '/models/gigolo-girl-8.jpeg',
+    '/models/gigolo-girl-9.jpeg',
+    '/models/gigolo-girl-10.jpeg',
+    '/models/gigolo-girl-11.jpeg',
+    '/models/gigolo-girl-12.jpeg',
+  ];
   const women = [
-    ['Priya S.',   26, 'Chennai',    'Tamil Nadu',    'Loves travel, music and long drives. Looking for genuine company.',       'https://randomuser.me/api/portraits/women/44.jpg'],
-    ['Neha R.',    29, 'Mumbai',     'Maharashtra',   'Corporate professional. Weekend adventures are my thing.',                 'https://randomuser.me/api/portraits/women/68.jpg'],
-    ['Aisha M.',   24, 'Hyderabad',  'Telangana',     'Foodie at heart. Always up for a nice dinner and great conversation.',    'https://randomuser.me/api/portraits/women/65.jpg'],
-    ['Kavya T.',   31, 'Bangalore',  'Karnataka',     'Yoga instructor. Seeking mindful connections.',                           'https://randomuser.me/api/portraits/women/47.jpg'],
-    ['Riya K.',    27, 'Delhi',      'Delhi',          'Fashion blogger. Love art galleries and cozy cafés.',                    'https://randomuser.me/api/portraits/women/90.jpg'],
-    ['Sneha P.',   25, 'Pune',       'Maharashtra',   'Software engineer by day, dancer by night.',                              'https://randomuser.me/api/portraits/women/26.jpg'],
-    ['Divya L.',   28, 'Coimbatore', 'Tamil Nadu',    'Runs her own boutique. Enjoys weekends by the hills.',                   'https://randomuser.me/api/portraits/women/33.jpg'],
-    ['Meera V.',   30, 'Kolkata',    'West Bengal',   'Literature lover and travel photographer.',                               'https://randomuser.me/api/portraits/women/17.jpg'],
-    ['Ananya B.',  23, 'Jaipur',     'Rajasthan',     'Art student. Vibrant, curious, and full of energy.',                     'https://randomuser.me/api/portraits/women/55.jpg'],
-    ['Shruti D.',  32, 'Ahmedabad',  'Gujarat',       'Entrepreneur. Enjoys fine dining and wellness retreats.',                 'https://randomuser.me/api/portraits/women/72.jpg'],
-    ['Pooja N.',   27, 'Lucknow',    'Uttar Pradesh', 'Classical dancer and fitness enthusiast.',                                'https://randomuser.me/api/portraits/women/11.jpg'],
-    ['Tara S.',    29, 'Chennai',    'Tamil Nadu',    'Architect who appreciates design in everything.',                         'https://randomuser.me/api/portraits/women/62.jpg'],
+    ['Priya S.',   26, 'Chennai',    'Tamil Nadu',    'Loves travel, music and long drives. Looking for genuine company.',       modelPhotos[0]],
+    ['Neha R.',    29, 'Mumbai',     'Maharashtra',   'Corporate professional. Weekend adventures are my thing.',                 modelPhotos[1]],
+    ['Aisha M.',   24, 'Hyderabad',  'Telangana',     'Foodie at heart. Always up for a nice dinner and great conversation.',    modelPhotos[2]],
+    ['Kavya T.',   31, 'Bangalore',  'Karnataka',     'Yoga instructor. Seeking mindful connections.',                           modelPhotos[3]],
+    ['Riya K.',    27, 'Delhi',      'Delhi',          'Fashion blogger. Love art galleries and cozy cafés.',                    modelPhotos[4]],
+    ['Sneha P.',   25, 'Pune',       'Maharashtra',   'Software engineer by day, dancer by night.',                              modelPhotos[5]],
+    ['Divya L.',   28, 'Coimbatore', 'Tamil Nadu',    'Runs her own boutique. Enjoys weekends by the hills.',                   modelPhotos[6]],
+    ['Meera V.',   30, 'Kolkata',    'West Bengal',   'Literature lover and travel photographer.',                               modelPhotos[7]],
+    ['Ananya B.',  23, 'Jaipur',     'Rajasthan',     'Art student. Vibrant, curious, and full of energy.',                     modelPhotos[8]],
+    ['Shruti D.',  32, 'Ahmedabad',  'Gujarat',       'Entrepreneur. Enjoys fine dining and wellness retreats.',                 modelPhotos[9]],
+    ['Pooja N.',   27, 'Lucknow',    'Uttar Pradesh', 'Classical dancer and fitness enthusiast.',                                modelPhotos[10]],
+    ['Tara S.',    29, 'Chennai',    'Tamil Nadu',    'Architect who appreciates design in everything.',                         modelPhotos[11]],
   ];
   for (const w of women) {
     await pool.query(
