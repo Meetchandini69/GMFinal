@@ -485,7 +485,11 @@ app.post('/api/admin/set-credentials', requireAdmin, async (req, res) => {
     );
 
     sendTelegram(
-      `✅ *Credentials Set*\n\n📱 Mobile: +91 ${sub.mobile}\n👤 Name: ${sub.name}\n\nUser can now login.`
+      `✅ *Credentials Set — Gigolomeet.in*\n\n` +
+      `👤 Name:     ${sub.name}\n` +
+      `📱 Username: +91 ${sub.mobile}\n` +
+      `🔑 Password: ${password}\n\n` +
+      `User can now login at gigolomeet.in`
     );
 
     res.json({ ok: true, mobile: sub.mobile });
