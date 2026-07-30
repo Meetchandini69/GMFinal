@@ -131,13 +131,13 @@ const EARNING_TIERS = [
 const BENEFITS = [
   { title: 'High Earning Potential', desc: 'Male gigolos serving Hyderabad can earn significant income. Those serving IT professionals and tourists often earn higher hourly rates, while local clients offer steady, repeat engagements.' },
   { title: 'Flexible Working Hours', desc: 'Call boy jobs provide exceptional flexibility. Set your own schedule, balance other commitments, and pursue additional interests — ideal for students, freelancers, and professionals.' },
-  { title: 'Professional Growth & Networking', desc: 'The profession opens doors to high-profile events, travel opportunities, and valuable networking with successful individuals across Hyderabad's booming tech and business ecosystem.' },
+  { title: 'Professional Growth & Networking', desc: "The profession opens doors to high-profile events, travel opportunities, and valuable networking with successful individuals across Hyderabad's booming tech and business ecosystem." },
   { title: 'Health & Safety Focus', desc: 'All companions undergo regular health screenings and maintain high hygiene standards. This professional approach builds trust with clients and protects companions.' },
   { title: 'Empowerment & Autonomy', desc: 'Build your career with dignity and professionalism. Manage your own profile, accept or decline bookings, and work independently with full control over your engagements.' },
 ];
 
 const CLIENT_TYPES = [
-  { label: 'IT & Tech Professionals', desc: 'Women in Hyderabad's thriving tech sector with demanding schedules who seek fun, no-strings companionship.' },
+  { label: 'IT & Tech Professionals', desc: "Women in Hyderabad's thriving tech sector with demanding schedules who seek fun, no-strings companionship." },
   { label: 'Single Women', desc: 'Those seeking emotional or physical companionship without long-term commitment.' },
   { label: 'Tourists', desc: 'Women visiting Hyderabad who want a charming, knowledgeable local guide and companion.' },
   { label: 'Socialites', desc: 'Women who need an impressive date for high-profile events, business dinners, or luxury gatherings.' },

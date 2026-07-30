@@ -131,13 +131,13 @@ const EARNING_TIERS = [
 const BENEFITS = [
   { title: 'High Earning Potential', desc: 'Male gigolos serving Kolkata can earn significant income. Those serving tourists and professionals often earn higher hourly rates, while local clients offer steady, repeat engagements.' },
   { title: 'Flexible Working Hours', desc: 'Call boy jobs provide exceptional flexibility. Set your own schedule, balance other commitments, and pursue additional interests — ideal for students, freelancers, and professionals.' },
-  { title: 'Professional Growth & Networking', desc: 'The profession opens doors to high-profile events, travel opportunities, and valuable networking with successful individuals across Kolkata's vibrant cultural scene.' },
+  { title: 'Professional Growth & Networking', desc: "The profession opens doors to high-profile events, travel opportunities, and valuable networking with successful individuals across Kolkata's vibrant cultural scene." },
   { title: 'Health & Safety Focus', desc: 'All companions undergo regular health screenings and maintain high hygiene standards. This professional approach builds trust with clients and protects companions.' },
   { title: 'Empowerment & Autonomy', desc: 'Build your career with dignity and professionalism. Manage your own profile, accept or decline bookings, and work independently with full control over your engagements.' },
 ];
 
 const CLIENT_TYPES = [
-  { label: 'Busy Professionals', desc: 'Women with demanding careers in Kolkata's corporate and IT sectors who lack time for traditional dating.' },
+  { label: 'Busy Professionals', desc: "Women with demanding careers in Kolkata's corporate and IT sectors who lack time for traditional dating." },
   { label: 'Single Women', desc: 'Those seeking emotional or physical companionship without long-term commitment.' },
   { label: 'Tourists', desc: 'Women visiting Kolkata who want a charming, knowledgeable local guide and companion.' },
   { label: 'Socialites', desc: 'Women who need an impressive date for high-profile events, cultural gatherings, or business functions.' },
