@@ -551,6 +551,77 @@ app.post('/api/admin/review-profile', requireAdmin, async (req, res) => {
   }
 });
 
+// ══════════════════════════════════════════════════════════════════════════
+//  ADMIN — WOMEN MANAGEMENT
+// ══════════════════════════════════════════════════════════════════════════
+
+// Upload a photo for a woman profile (admin)
+app.post('/api/admin/upload-photo', requireAdmin, upload.single('photo'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file received' });
+  const url = `/uploads/${req.file.filename}`;
+  res.json({ ok: true, url });
+});
+
+// List all women profiles
+app.get('/api/admin/women', requireAdmin, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      'SELECT * FROM women ORDER BY id DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Create a woman profile
+app.post('/api/admin/women', requireAdmin, async (req, res) => {
+  const { name, age, city, state, bio, photo_url } = req.body;
+  if (!name) return res.status(400).json({ error: 'Name is required' });
+  try {
+    const { rows } = await pool.query(
+      'INSERT INTO women (name, age, city, state, bio, photo_url) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *',
+      [name.trim(), age || null, city || '', state || '', bio || '', photo_url || '']
+    );
+    res.json({ ok: true, woman: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Update a woman profile
+app.put('/api/admin/women/:id', requireAdmin, async (req, res) => {
+  const { name, age, city, state, bio, photo_url, is_active } = req.body;
+  try {
+    const { rows } = await pool.query(
+      `UPDATE women
+         SET name=$1, age=$2, city=$3, state=$4, bio=$5, photo_url=$6, is_active=$7
+       WHERE id=$8
+       RETURNING *`,
+      [name, age || null, city, state, bio, photo_url, is_active ?? true, req.params.id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Not found' });
+    res.json({ ok: true, woman: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Delete a woman profile
+app.delete('/api/admin/women/:id', requireAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM swipe_actions WHERE woman_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM women WHERE id = $1', [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`🚀 API server running on http://localhost:${PORT}`);
