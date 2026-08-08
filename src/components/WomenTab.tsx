@@ -140,7 +140,7 @@ function SwipeCard({
         <img
           src={woman.photo_url}
           alt={woman.name}
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-cover object-top pointer-events-none"
           draggable={false}
         />
 
