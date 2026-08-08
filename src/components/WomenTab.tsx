@@ -89,7 +89,9 @@ function SwipeCard({
     startX.current = e.clientX;
     startY.current = e.clientY;
     currentX.current = 0;
-    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    // Capture on the card itself, not the child that happened to be touched.
+    // This keeps receiving move/up events when a finger leaves the card edge.
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, [isTop]);
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
@@ -131,10 +133,18 @@ function SwipeCard({
       <div
         ref={cardRef}
         className="w-full rounded-3xl overflow-hidden border border-white/10 select-none cursor-grab active:cursor-grabbing"
-        style={{ height: 440, background: '#111', willChange: 'transform' }}
+        style={{
+          height: 440,
+          background: '#111',
+          willChange: 'transform',
+          // Allow the page to scroll vertically, while keeping horizontal
+          // finger gestures available for the swipe interaction.
+          touchAction: 'pan-y',
+        }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         onPointerLeave={onPointerUp}
       >
         <img
