@@ -70,6 +70,8 @@ type WomanForm = {
   photo_url: string;
 };
 
+type SubmissionFilter = 'all' | 'pending' | 'approved' | 'profile_pending' | 'profile_approved';
+
 const EMPTY_FORM: WomanForm = { name: '', age: '', city: '', state: '', bio: '', photo_url: '' };
 
 // ── WomanModal ─────────────────────────────────────────────────────────────
@@ -268,7 +270,7 @@ export default function Admin() {
   const [credMsg, setCredMsg] = useState('');
   const [profileDetail, setProfileDetail] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('all');
+  const [filter, setFilter] = useState<SubmissionFilter>('all');
 
   // women state
   const [women, setWomen] = useState<Woman[]>([]);
@@ -370,7 +372,12 @@ export default function Admin() {
     return map[status] || map.pending;
   };
 
-  const filtered = submissions.filter(s => filter === 'all' || s.status === filter);
+  const filtered = submissions.filter(s => {
+    if (filter === 'all') return true;
+    if (filter === 'profile_pending') return s.member_status === 'pending_review';
+    if (filter === 'profile_approved') return s.member_status === 'active';
+    return s.status === filter;
+  });
 
   // ── Women ────────────────────────────────────────────────────────────────
 
@@ -523,14 +530,20 @@ export default function Admin() {
             </div>
 
             {/* Filter */}
-            <div className="flex gap-2 mb-6">
-              {(['all', 'pending', 'approved'] as const).map(f => (
+            <div className="flex gap-2 mb-6 flex-wrap">
+              {[
+                { value: 'all' as const, label: 'All', count: submissions.length },
+                { value: 'pending' as const, label: 'Pending', count: submissions.filter(s => s.status === 'pending').length },
+                { value: 'approved' as const, label: 'Approved', count: submissions.filter(s => s.status === 'approved').length },
+                { value: 'profile_pending' as const, label: 'Profile Submitted for Approval', count: submissions.filter(s => s.member_status === 'pending_review').length },
+                { value: 'profile_approved' as const, label: 'Profile Submitted Approved', count: submissions.filter(s => s.member_status === 'active').length },
+              ].map(({ value, label, count }) => (
                 <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors capitalize ${filter === f ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
+                  key={value}
+                  onClick={() => setFilter(value)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === value ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
                 >
-                  {f}
+                  {label} <span className="ml-1 opacity-70">{count}</span>
                 </button>
               ))}
             </div>
