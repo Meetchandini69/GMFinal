@@ -513,6 +513,67 @@ app.post('/api/admin/update-status', requireAdmin, async (req, res) => {
   }
 });
 
+// Disable or re-enable a user's login without deleting their profile.
+app.post('/api/admin/user-status', requireAdmin, async (req, res) => {
+  const { user_id, is_active } = req.body;
+  if (!Number.isInteger(Number(user_id)) || typeof is_active !== 'boolean') {
+    return res.status(400).json({ error: 'user_id and boolean is_active are required' });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      'UPDATE users SET is_active = $1 WHERE id = $2 RETURNING id, is_active',
+      [is_active, Number(user_id)]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'User not found' });
+    res.json({ ok: true, is_active: rows[0].is_active });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Permanently delete a submission and all data belonging to its user.
+app.delete('/api/admin/submissions/:submissionId', requireAdmin, async (req, res) => {
+  const submissionId = Number(req.params.submissionId);
+  if (!Number.isInteger(submissionId)) {
+    return res.status(400).json({ error: 'Invalid submission ID' });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const { rows: users } = await client.query(
+      'SELECT id FROM users WHERE submission_id = $1',
+      [submissionId]
+    );
+
+    for (const user of users) {
+      await client.query('DELETE FROM swipe_actions WHERE user_id = $1', [user.id]);
+      await client.query('DELETE FROM profiles WHERE user_id = $1', [user.id]);
+      await client.query('DELETE FROM users WHERE id = $1', [user.id]);
+    }
+
+    const { rowCount } = await client.query(
+      'DELETE FROM submissions WHERE id = $1',
+      [submissionId]
+    );
+    if (!rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Submission not found' });
+    }
+
+    await client.query('COMMIT');
+    res.json({ ok: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).json({ error: 'Delete failed' });
+  } finally {
+    client.release();
+  }
+});
+
 app.get('/api/admin/profile/:userId', requireAdmin, async (req, res) => {
   try {
     const { rows } = await pool.query(

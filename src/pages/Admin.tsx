@@ -23,7 +23,7 @@ type Submission = {
   status: string;
   created_at: string;
   user_id?: number;
-  is_active?: number;
+  is_active?: boolean | number;
   member_status?: string;
   profile_step?: number;
 };
@@ -271,6 +271,8 @@ export default function Admin() {
   const [profileDetail, setProfileDetail] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [filter, setFilter] = useState<SubmissionFilter>('all');
+  const [deleteSubmissionConfirm, setDeleteSubmissionConfirm] = useState<Submission | null>(null);
+  const [userActionLoading, setUserActionLoading] = useState<number | null>(null);
 
   // women state
   const [women, setWomen] = useState<Woman[]>([]);
@@ -361,6 +363,48 @@ export default function Admin() {
       credentials: 'include',
     });
     loadSubmissions();
+  };
+
+  const handleToggleUser = async (submission: Submission) => {
+    if (!submission.user_id) return;
+    const currentlyActive = submission.is_active === true || submission.is_active === 1;
+    setUserActionLoading(submission.id);
+    try {
+      const res = await apiFetch('/api/admin/user-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: submission.user_id, is_active: !currentlyActive }),
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Unable to update user status');
+      }
+      await loadSubmissions();
+    } finally {
+      setUserActionLoading(null);
+    }
+  };
+
+  const handleDeleteSubmission = async () => {
+    if (!deleteSubmissionConfirm) return;
+    setUserActionLoading(deleteSubmissionConfirm.id);
+    try {
+      const res = await apiFetch(`/api/admin/submissions/${deleteSubmissionConfirm.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Delete failed');
+      }
+      setDeleteSubmissionConfirm(null);
+      setExpanded(null);
+      setProfileDetail(null);
+      await loadSubmissions();
+    } finally {
+      setUserActionLoading(null);
+    }
   };
 
   const statusBadge = (status: string) => {
@@ -578,6 +622,9 @@ export default function Admin() {
                           {sub.user_id && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full border bg-primary/10 text-primary border-primary/30 font-medium">has login</span>
                           )}
+                           {sub.user_id && !(sub.is_active === true || sub.is_active === 1) && (
+                             <span className="text-[10px] px-2 py-0.5 rounded-full border bg-red-400/10 text-red-400 border-red-400/30 font-medium">disabled</span>
+                           )}
                           {sub.member_status === 'pending_review' && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full border bg-yellow-400/10 text-yellow-400 border-yellow-400/30 font-medium">awaiting review</span>
                           )}
@@ -587,6 +634,20 @@ export default function Admin() {
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {sub.user_id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className={`text-xs h-8 px-2 ${sub.is_active === true || sub.is_active === 1 ? 'text-red-400 border-red-400/30 hover:bg-red-400/10' : 'text-green-400 border-green-400/30 hover:bg-green-400/10'}`}
+                            onClick={() => handleToggleUser(sub)}
+                            disabled={userActionLoading === sub.id}
+                            title={sub.is_active === true || sub.is_active === 1 ? 'Disable user login' : 'Enable user login'}
+                          >
+                            {sub.is_active === true || sub.is_active === 1
+                              ? <><ToggleLeft className="w-3.5 h-3.5 mr-1" />Disable</>
+                              : <><ToggleRight className="w-3.5 h-3.5 mr-1" />Enable</>}
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           className="bg-primary text-black text-xs h-8 px-3 font-semibold"
@@ -610,6 +671,16 @@ export default function Admin() {
                           }}
                         >
                           {expanded === sub.id ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                          onClick={() => setDeleteSubmissionConfirm(sub)}
+                          disabled={userActionLoading === sub.id}
+                          title="Delete user and submission"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -844,6 +915,47 @@ export default function Admin() {
                   {settingCreds ? 'Creating...' : credModal.user_id ? 'Update Password' : 'Create Login'}
                 </Button>
               </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
+      {/* ── User Delete Confirm ──────────────────────────────────────────────── */}
+      {deleteSubmissionConfirm && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-card border border-red-500/20 rounded-2xl p-6 w-full max-w-sm shadow-2xl"
+          >
+            <div className="flex items-start gap-3 mb-5">
+              <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div>
+                <h3 className="text-white font-bold">Delete User?</h3>
+                <p className="text-muted-foreground text-sm mt-1">
+                  This permanently deletes <span className="text-white font-medium">{deleteSubmissionConfirm.name}</span>,
+                  their login, profile, and swipe history. This cannot be undone.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => setDeleteSubmissionConfirm(null)}
+                disabled={userActionLoading === deleteSubmissionConfirm.id}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold"
+                onClick={handleDeleteSubmission}
+                disabled={userActionLoading === deleteSubmissionConfirm.id}
+              >
+                {userActionLoading === deleteSubmissionConfirm.id ? 'Deleting...' : 'Delete User'}
+              </Button>
             </div>
           </motion.div>
         </div>
