@@ -77,6 +77,23 @@ await pool.query(`
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
 
+  CREATE TABLE IF NOT EXISTS location_pages (
+    id                SERIAL PRIMARY KEY,
+    slug              TEXT UNIQUE NOT NULL,
+    source_slug       TEXT,
+    title             TEXT NOT NULL,
+    city              TEXT NOT NULL,
+    state             TEXT,
+    nickname          TEXT,
+    hero_description  TEXT,
+    meta_description  TEXT,
+    stats             JSONB NOT NULL DEFAULT '[]'::jsonb,
+    areas             JSONB NOT NULL DEFAULT '[]'::jsonb,
+    is_active         BOOLEAN DEFAULT TRUE,
+    created_at        TIMESTAMPTZ DEFAULT NOW(),
+    updated_at        TIMESTAMPTZ DEFAULT NOW()
+  );
+
   CREATE TABLE IF NOT EXISTS swipe_actions (
     id         SERIAL PRIMARY KEY,
     user_id    INTEGER NOT NULL REFERENCES users(id),

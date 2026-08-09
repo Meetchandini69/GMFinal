@@ -6,6 +6,7 @@ import Admin from './pages/Admin';
 import Coimbatore from './pages/Coimbatore';
 import Kolkata from './pages/Kolkata';
 import Hyderabad from './pages/Hyderabad';
+import LocationPage from './pages/LocationPage';
 import NotFound from './pages/not-found';
 
 export default function App() {
@@ -18,6 +19,7 @@ export default function App() {
       <Route path="/coimbatore" component={Coimbatore} />
       <Route path="/kolkata" component={Kolkata} />
       <Route path="/hyderabad" component={Hyderabad} />
+      <Route path="/:slug" component={LocationPage} />
       <Route component={NotFound} />
     </Switch>
   );

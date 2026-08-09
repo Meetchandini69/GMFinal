@@ -211,6 +211,24 @@ app.get('/api/auth/me', async (req, res) => {
   res.json({ role: 'guest' });
 });
 
+// Public cloned location page content
+app.get('/api/location-pages/:slug', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, source_slug, title, city, state, nickname,
+              hero_description, meta_description, stats, areas
+       FROM location_pages
+       WHERE slug = $1 AND is_active = TRUE`,
+      [req.params.slug.toLowerCase()]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Location page not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Admin login
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
@@ -510,6 +528,128 @@ app.post('/api/admin/update-status', requireAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// ── Admin location page management ─────────────────────────────────────────
+app.get('/api/admin/location-pages', requireAdmin, async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, source_slug, title, city, state, nickname,
+              hero_description, meta_description, stats, areas,
+              is_active, created_at, updated_at
+       FROM location_pages
+       ORDER BY created_at DESC`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+function normalizeLocationPage(body) {
+  const slug = String(body.slug || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^\/+|\/+$/g, '')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-');
+  const city = String(body.city || '').trim();
+  if (!slug || !city) return { error: 'City and URL slug are required' };
+  if (slug.length > 80) return { error: 'URL slug must be 80 characters or fewer' };
+
+  const stats = Array.isArray(body.stats)
+    ? body.stats.slice(0, 8).map(item => ({
+        label: String(item.label || '').trim(),
+        value: String(item.value || '').trim(),
+      })).filter(item => item.label && item.value)
+    : [];
+  const areas = Array.isArray(body.areas)
+    ? body.areas.map(area => String(area).trim()).filter(Boolean).slice(0, 30)
+    : [];
+
+  return {
+    value: {
+      slug,
+      source_slug: String(body.source_slug || '').trim() || null,
+      title: String(body.title || `${city} Location Page`).trim(),
+      city,
+      state: String(body.state || '').trim(),
+      nickname: String(body.nickname || '').trim(),
+      hero_description: String(body.hero_description || '').trim(),
+      meta_description: String(body.meta_description || '').trim(),
+      stats: JSON.stringify(stats),
+      areas: JSON.stringify(areas),
+      is_active: body.is_active !== false,
+    },
+  };
+}
+
+app.post('/api/admin/location-pages', requireAdmin, async (req, res) => {
+  const normalized = normalizeLocationPage(req.body);
+  if (normalized.error) return res.status(400).json({ error: normalized.error });
+  const page = normalized.value;
+
+  try {
+    const { rows } = await pool.query(
+      `INSERT INTO location_pages
+         (slug, source_slug, title, city, state, nickname,
+          hero_description, meta_description, stats, areas, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11)
+       RETURNING *`,
+      [
+        page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
+        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active,
+      ]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'That URL slug is already in use' });
+    console.error(err);
+    res.status(500).json({ error: 'Save failed' });
+  }
+});
+
+app.put('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid page ID' });
+  const normalized = normalizeLocationPage(req.body);
+  if (normalized.error) return res.status(400).json({ error: normalized.error });
+  const page = normalized.value;
+
+  try {
+    const { rows } = await pool.query(
+      `UPDATE location_pages
+          SET slug=$1, source_slug=$2, title=$3, city=$4, state=$5, nickname=$6,
+              hero_description=$7, meta_description=$8, stats=$9::jsonb,
+              areas=$10::jsonb, is_active=$11, updated_at=NOW()
+        WHERE id=$12
+        RETURNING *`,
+      [
+        page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
+        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active, id,
+      ]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Page not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    if (err.code === '23505') return res.status(409).json({ error: 'That URL slug is already in use' });
+    console.error(err);
+    res.status(500).json({ error: 'Save failed' });
+  }
+});
+
+app.delete('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid page ID' });
+  try {
+    const { rowCount } = await pool.query('DELETE FROM location_pages WHERE id = $1', [id]);
+    if (!rowCount) return res.status(404).json({ error: 'Page not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Delete failed' });
   }
 });
 

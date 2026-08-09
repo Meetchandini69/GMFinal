@@ -4,7 +4,7 @@ import {
   Crown, LogOut, Users, CheckCircle, Clock, XCircle,
   Key, ChevronDown, ChevronUp, UserCheck, AlertCircle,
   ImagePlus, Pencil, Trash2, ToggleLeft, ToggleRight, Plus,
-  Heart, X, Save,
+  Heart, X, Save, Copy, ExternalLink, Globe, FileText,
 } from 'lucide-react';
 import { apiFetch, getImageUrl } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -72,7 +72,174 @@ type WomanForm = {
 
 type SubmissionFilter = 'all' | 'pending' | 'approved' | 'profile_pending' | 'profile_approved';
 
+type LocationStat = { label: string; value: string };
+
+type LocationPage = {
+  id?: number;
+  slug: string;
+  source_slug?: string | null;
+  title: string;
+  city: string;
+  state: string;
+  nickname: string;
+  hero_description: string;
+  meta_description: string;
+  stats: LocationStat[];
+  areas: string[];
+  is_active: boolean;
+  isTemplate?: boolean;
+};
+
+const LOCATION_TEMPLATES: LocationPage[] = [
+  {
+    slug: 'coimbatore', title: 'Coimbatore Location Page', city: 'Coimbatore',
+    state: 'Tamil Nadu', nickname: 'Manchester of South India',
+    hero_description: 'Find professional companionship opportunities in Coimbatore across RS Puram, Gandhipuram, Peelamedu and surrounding areas.',
+    meta_description: 'Gigolo services and male companionship opportunities in Coimbatore.',
+    stats: [{ label: 'Women Registered', value: '843+' }, { label: 'Online Right Now', value: '127' }, { label: 'New Profiles Today', value: '24' }, { label: 'Avg. Earnings/Month', value: '₹75K' }],
+    areas: ['RS Puram', 'Gandhipuram', 'Peelamedu', 'Saibaba Colony', 'Singanallur', 'Vadavalli'],
+    is_active: true, isTemplate: true,
+  },
+  {
+    slug: 'hyderabad', title: 'Hyderabad Location Page', city: 'Hyderabad',
+    state: 'Telangana', nickname: 'City of Pearls',
+    hero_description: 'Connect with women seeking professional companionship in Banjara Hills, Jubilee Hills, Hitech City and nearby areas.',
+    meta_description: 'Gigolo services and male companionship opportunities in Hyderabad.',
+    stats: [{ label: 'Women Registered', value: '1,100+' }, { label: 'Online Right Now', value: '167' }, { label: 'New Profiles Today', value: '33' }, { label: 'Avg. Earnings/Month', value: '₹85K' }],
+    areas: ['Banjara Hills', 'Jubilee Hills', 'Gachibowli', 'Madhapur', 'Hitech City', 'Kondapur'],
+    is_active: true, isTemplate: true,
+  },
+  {
+    slug: 'kolkata', title: 'Kolkata Location Page', city: 'Kolkata',
+    state: 'West Bengal', nickname: 'City of Joy',
+    hero_description: 'Discover professional companionship opportunities in Kolkata across Salt Lake, Ballygunge, Park Street and nearby areas.',
+    meta_description: 'Gigolo services and male companionship opportunities in Kolkata.',
+    stats: [{ label: 'Women Registered', value: '920+' }, { label: 'Online Right Now', value: '143' }, { label: 'New Profiles Today', value: '29' }, { label: 'Avg. Earnings/Month', value: '₹80K' }],
+    areas: ['Park Street', 'Salt Lake', 'New Town', 'Ballygunge', 'Alipore', 'Jadavpur'],
+    is_active: true, isTemplate: true,
+  },
+];
+
 const EMPTY_FORM: WomanForm = { name: '', age: '', city: '', state: '', bio: '', photo_url: '' };
+
+function LocationPageEditor({
+  initial,
+  onSave,
+  onClose,
+}: {
+  initial: LocationPage;
+  onSave: (page: LocationPage) => Promise<void>;
+  onClose: () => void;
+}) {
+  const [form, setForm] = useState<LocationPage>(initial);
+  const [stats, setStats] = useState<LocationStat[]>(initial.stats);
+  const [areas, setAreas] = useState(initial.areas.join(', '));
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const update = (key: keyof LocationPage, value: string | boolean) => setForm(prev => ({ ...prev, [key]: value }));
+
+  const save = async () => {
+    if (!form.city.trim() || !form.slug.trim()) {
+      setError('City and URL slug are required');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      await onSave({ ...form, stats, areas: areas.split(',').map(area => area.trim()).filter(Boolean) });
+    } catch (err: any) {
+      setError(err?.message || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-card border border-white/10 rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center"><Globe className="w-4 h-4 text-primary" /></div>
+            <div>
+              <h3 className="text-white font-bold">{initial.id ? 'Edit Location Page' : 'Clone Location Page'}</h3>
+              <p className="text-muted-foreground text-xs">Set the public URL and location content.</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="text-muted-foreground hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Page title</label>
+              <Input value={form.title} onChange={e => update('title', e.target.value)} className="h-10 bg-background border-white/10 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">URL slug *</label>
+              <div className="flex items-center">
+                <span className="h-10 inline-flex items-center px-2 rounded-l-md border border-r-0 border-white/10 bg-background text-muted-foreground text-sm">/</span>
+                <Input value={form.slug} onChange={e => update('slug', e.target.value)} className="h-10 rounded-l-none bg-background border-white/10 text-white" placeholder="e.g. chennai" />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">City *</label>
+              <Input value={form.city} onChange={e => update('city', e.target.value)} className="h-10 bg-background border-white/10 text-white" />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">State</label>
+              <Input value={form.state} onChange={e => update('state', e.target.value)} className="h-10 bg-background border-white/10 text-white" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">City nickname</label>
+              <Input value={form.nickname} onChange={e => update('nickname', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="e.g. City of Dreams" />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Hero description</label>
+            <Textarea value={form.hero_description} onChange={e => update('hero_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[80px]" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">SEO meta description</label>
+            <Textarea value={form.meta_description} onChange={e => update('meta_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[65px]" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Service areas</label>
+            <Input value={areas} onChange={e => setAreas(e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Area 1, Area 2, Area 3" />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider">Page stats</label>
+              <button type="button" onClick={() => setStats(prev => [...prev, { label: '', value: '' }])} className="text-xs text-primary hover:text-white">+ Add stat</button>
+            </div>
+            <div className="space-y-2">
+              {stats.map((stat, index) => (
+                <div key={index} className="flex gap-2">
+                  <Input value={stat.label} onChange={e => setStats(prev => prev.map((item, i) => i === index ? { ...item, label: e.target.value } : item))} className="h-9 bg-background border-white/10 text-white" placeholder="Label" />
+                  <Input value={stat.value} onChange={e => setStats(prev => prev.map((item, i) => i === index ? { ...item, value: e.target.value } : item))} className="h-9 w-32 bg-background border-white/10 text-white" placeholder="Value" />
+                  <button type="button" onClick={() => setStats(prev => prev.filter((_, i) => i !== index))} className="text-muted-foreground hover:text-red-400 px-2"><X className="w-4 h-4" /></button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {error && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
+          <div className="flex items-center justify-between pt-2">
+            <label className="flex items-center gap-2 text-sm text-white">
+              <input type="checkbox" checked={form.is_active} onChange={e => update('is_active', e.target.checked)} className="accent-primary" />
+              Published and publicly visible
+            </label>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={onClose} disabled={saving}>Cancel</Button>
+              <Button className="bg-primary text-black font-bold" onClick={save} disabled={saving}>{saving ? 'Saving...' : <><Save className="w-4 h-4 mr-1.5" />Save Page</>}</Button>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 // ── WomanModal ─────────────────────────────────────────────────────────────
 
@@ -258,7 +425,7 @@ export default function Admin() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // top-level tab
-  const [mainTab, setMainTab] = useState<'submissions' | 'women'>('submissions');
+  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations'>('submissions');
 
   // submissions state
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -279,6 +446,9 @@ export default function Admin() {
   const [womenLoading, setWomenLoading] = useState(false);
   const [womanModal, setWomanModal] = useState<(WomanForm & { id?: number }) | null | false>(false);
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null);
+  const [locationPages, setLocationPages] = useState<LocationPage[]>([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  const [locationEditor, setLocationEditor] = useState<LocationPage | null>(null);
 
   useEffect(() => {
     apiFetch('/api/auth/me', { credentials: 'include' })
@@ -439,6 +609,62 @@ export default function Admin() {
     if (authed && mainTab === 'women') loadWomen();
   }, [authed, mainTab]);
 
+  const loadLocationPages = async () => {
+    setLocationsLoading(true);
+    try {
+      const res = await apiFetch('/api/admin/location-pages', { credentials: 'include' });
+      if (res.ok) setLocationPages(await res.json());
+    } finally {
+      setLocationsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (authed && mainTab === 'locations') loadLocationPages();
+  }, [authed, mainTab]);
+
+  const saveLocationPage = async (page: LocationPage) => {
+    const res = await apiFetch(
+      page.id ? `/api/admin/location-pages/${page.id}` : '/api/admin/location-pages',
+      {
+        method: page.id ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(page),
+        credentials: 'include',
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Save failed');
+    setLocationEditor(null);
+    await loadLocationPages();
+  };
+
+  const cloneLocationPage = (page: LocationPage) => {
+    const baseSlug = page.slug.replace(/-copy(?:-\d+)?$/, '');
+    setLocationEditor({
+      ...page,
+      id: undefined,
+      isTemplate: false,
+      source_slug: page.source_slug || page.slug,
+      slug: `${baseSlug}-copy`,
+      title: `${page.title} Copy`,
+    });
+  };
+
+  const deleteLocationPage = async (page: LocationPage) => {
+    if (!page.id || !window.confirm(`Delete the "${page.title}" page permanently?`)) return;
+    const res = await apiFetch(`/api/admin/location-pages/${page.id}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (res.ok) loadLocationPages();
+  };
+
+  const toggleLocationPage = async (page: LocationPage) => {
+    if (!page.id) return;
+    await saveLocationPage({ ...page, is_active: !page.is_active });
+  };
+
   const handleSaveWoman = async (form: WomanForm, id?: number) => {
     const body = { ...form, age: form.age ? Number(form.age) : null };
     const res = await apiFetch(
@@ -526,7 +752,13 @@ export default function Admin() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button size="sm" variant="outline" onClick={mainTab === 'submissions' ? loadSubmissions : loadWomen}>Refresh</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={mainTab === 'submissions' ? loadSubmissions : mainTab === 'women' ? loadWomen : loadLocationPages}
+            >
+              Refresh
+            </Button>
             <Button size="sm" variant="ghost" onClick={handleLogout} className="text-muted-foreground">
               <LogOut className="w-4 h-4 mr-1.5" /> Logout
             </Button>
@@ -549,6 +781,12 @@ export default function Admin() {
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'women' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
           >
             <Heart className="w-4 h-4" /> Women Profiles
+          </button>
+          <button
+            onClick={() => setMainTab('locations')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'locations' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
+          >
+            <Globe className="w-4 h-4" /> Location Pages
           </button>
         </div>
 
@@ -866,6 +1104,99 @@ export default function Admin() {
             )}
           </>
         )}
+
+        {/* ══════════════ LOCATION PAGES TAB ══════════════ */}
+        {mainTab === 'locations' && (
+          <>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-white font-bold text-lg">Location Pages</h2>
+                <p className="text-muted-foreground text-sm mt-0.5">
+                  Clone an existing city page, edit its content, and publish it at any URL slug.
+                </p>
+              </div>
+            </div>
+
+            <div className="mb-8">
+              <div className="flex items-center gap-2 mb-3">
+                <FileText className="w-4 h-4 text-primary" />
+                <h3 className="text-white font-semibold">Built-in pages</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {LOCATION_TEMPLATES.map(template => (
+                  <div key={template.slug} className="bg-card border border-white/10 rounded-xl p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-white font-semibold">{template.city}</p>
+                        <p className="text-muted-foreground text-xs mt-1">/{template.slug}</p>
+                      </div>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-400">Live</span>
+                    </div>
+                    <p className="text-muted-foreground text-xs mt-3 line-clamp-2">{template.hero_description}</p>
+                    <Button size="sm" className="w-full mt-4 bg-primary text-black font-semibold" onClick={() => cloneLocationPage(template)}>
+                      <Copy className="w-3.5 h-3.5 mr-1.5" /> Clone Page
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <Globe className="w-4 h-4 text-primary" />
+                <h3 className="text-white font-semibold">Cloned pages</h3>
+              </div>
+              {locationsLoading ? (
+                <div className="flex justify-center py-12">
+                  <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                </div>
+              ) : locationPages.length === 0 ? (
+                <div className="text-center py-12 bg-card border border-white/10 rounded-xl text-muted-foreground">
+                  <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                  <p>No cloned location pages yet.</p>
+                  <p className="text-xs mt-1">Choose a built-in page above to create one.</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {locationPages.map(page => (
+                    <div key={page.id} className="bg-card border border-white/10 rounded-xl p-4 flex flex-col md:flex-row md:items-center gap-4">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-white font-semibold">{page.title}</p>
+                          <span className={`text-[10px] px-2 py-0.5 rounded-full border ${page.is_active ? 'border-green-400/30 bg-green-400/10 text-green-400' : 'border-red-400/30 bg-red-400/10 text-red-400'}`}>
+                            {page.is_active ? 'Published' : 'Unpublished'}
+                          </span>
+                        </div>
+                        <p className="text-muted-foreground text-xs mt-1">
+                          {page.city}{page.state ? `, ${page.state}` : ''} · /{page.slug}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {page.is_active && (
+                          <a href={`/${page.slug}`} target="_blank" rel="noreferrer" className="h-8 w-8 rounded-md border border-white/10 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/40" title="Open public page">
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        )}
+                        <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setLocationEditor(page)}>
+                          <Pencil className="w-3 h-3 mr-1" /> Edit
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => cloneLocationPage(page)}>
+                          <Copy className="w-3 h-3 mr-1" /> Duplicate
+                        </Button>
+                        <Button size="sm" variant="ghost" className={`h-8 w-8 p-0 ${page.is_active ? 'text-yellow-400' : 'text-green-400'}`} onClick={() => toggleLocationPage(page)} title={page.is_active ? 'Unpublish' : 'Publish'}>
+                          {page.is_active ? <ToggleLeft className="w-4 h-4" /> : <ToggleRight className="w-4 h-4" />}
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-red-400 hover:bg-red-500/10" onClick={() => deleteLocationPage(page)} title="Delete page">
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       {/* ── Credentials Modal ────────────────────────────────────────────────── */}
@@ -959,6 +1290,14 @@ export default function Admin() {
             </div>
           </motion.div>
         </div>
+      )}
+
+      {locationEditor && (
+        <LocationPageEditor
+          initial={locationEditor}
+          onSave={saveLocationPage}
+          onClose={() => setLocationEditor(null)}
+        />
       )}
 
       {/* ── Woman Add/Edit Modal ─────────────────────────────────────────────── */}
