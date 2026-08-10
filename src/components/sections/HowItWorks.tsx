@@ -38,19 +38,33 @@ const WOMEN_STEPS = [
   }
 ];
 
-export function HowItWorks() {
+export function HowItWorks({ content }: {
+  content?: {
+    title?: string;
+    description?: string;
+    gigolosLabel?: string;
+    womenLabel?: string;
+    gigolos?: { title: string; description: string }[];
+    women?: { title: string; description: string }[];
+  };
+}) {
   const [activeTab, setActiveTab] = useState<'gigolos' | 'women'>('gigolos');
-  const steps = activeTab === 'gigolos' ? GIGOLO_STEPS : WOMEN_STEPS;
+  const defaultSteps = activeTab === 'gigolos' ? GIGOLO_STEPS : WOMEN_STEPS;
+  const customSteps = activeTab === 'gigolos' ? content?.gigolos : content?.women;
+  const steps = (customSteps?.length ? customSteps.map((step, index) => ({
+    ...step,
+    icon: defaultSteps[index % defaultSteps.length].icon,
+  })) : defaultSteps);
 
   return (
     <section className="py-24 bg-background" id="how-it-works">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-            How It <span className="text-primary">Works</span>
+            {content?.title || <>How It <span className="text-primary">Works</span></>}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Simple. Secure. Rewarding. Start earning or start meeting in three easy steps.
+            {content?.description || 'Simple. Secure. Rewarding. Start earning or start meeting in three easy steps.'}
           </p>
         </div>
 
@@ -64,7 +78,7 @@ export function HowItWorks() {
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
-              💰 For Gigolos (Men Earning)
+              {content?.gigolosLabel || '💰 For Gigolos (Men Earning)'}
             </button>
             <button
               onClick={() => setActiveTab('women')}
@@ -74,7 +88,7 @@ export function HowItWorks() {
                   : 'text-muted-foreground hover:text-white'
               }`}
             >
-              💖 For Women (Seeking Company)
+              {content?.womenLabel || '💖 For Women (Seeking Company)'}
             </button>
           </div>
         </div>

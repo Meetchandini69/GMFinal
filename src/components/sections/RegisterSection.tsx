@@ -18,7 +18,18 @@ const AGE_RANGES = ["18–22", "23–27", "28–32", "33–38", "39–45", "46�
 
 type Step = 'form' | 'submitting' | 'success';
 
-export function RegisterSection() {
+export function RegisterSection({ content, termsHref = '#', privacyHref = '#' }: {
+  content?: {
+    badge?: string;
+    title?: React.ReactNode;
+    description?: string;
+    buttonText?: string;
+    termsText?: string;
+    privacyText?: string;
+  };
+  termsHref?: string;
+  privacyHref?: string;
+}) {
   const [step, setStep] = useState<Step>('form');
   const [formData, setFormData] = useState({ name: '', phone: '', city: '', age: '' });
   const [errors, setErrors] = useState<Partial<typeof formData>>({});
@@ -77,13 +88,13 @@ export function RegisterSection() {
             <div className="lg:w-5/12 text-center lg:text-left">
               <div className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-6">
                 <span className="flex h-2 w-2 rounded-full bg-primary mr-2 animate-pulse" />
-                Free Registration — Takes 2 Minutes
+                {content?.badge || 'Free Registration — Takes 2 Minutes'}
               </div>
               <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight">
-                Start Your <span className="text-gradient-gold">Gigolo Career</span> Today
+                {content?.title || <>Start Your <span className="text-gradient-gold">Gigolo Career</span> Today</>}
               </h2>
               <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
-                Register now and get your profile live within 24 hours. Women in your city will start sending meeting requests immediately.
+                {content?.description || 'Register now and get your profile live within 24 hours. Women in your city will start sending meeting requests immediately.'}
               </p>
               <ul className="space-y-4 mb-8">
                 {[
@@ -218,7 +229,7 @@ export function RegisterSection() {
                         ) : (
                           <span className="flex items-center gap-2">
                             <UserPlus className="w-5 h-5" />
-                            Register Free — Start Earning
+                            {content?.buttonText || 'Register Free — Start Earning'}
                             <ArrowRight className="w-5 h-5" />
                           </span>
                         )}
@@ -226,9 +237,9 @@ export function RegisterSection() {
 
                       <p className="text-center text-xs text-muted-foreground">
                         By registering you confirm you are 18+ and agree to our{' '}
-                        <a href="#" className="text-primary hover:underline">Terms of Service</a>
+                        <a href={termsHref} className="text-primary hover:underline">{content?.termsText || 'Terms of Service'}</a>
                         {' '}and{' '}
-                        <a href="#" className="text-primary hover:underline">Privacy Policy</a>.
+                        <a href={privacyHref} className="text-primary hover:underline">{content?.privacyText || 'Privacy Policy'}</a>.
                       </p>
                     </form>
                   </>

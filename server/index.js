@@ -216,7 +216,7 @@ app.get('/api/location-pages/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, source_slug, title, city, state, nickname,
-              hero_description, meta_description, stats, areas
+              hero_description, meta_description, stats, areas, content, links
        FROM location_pages
        WHERE slug = $1 AND is_active = TRUE`,
       [req.params.slug.toLowerCase()]
@@ -536,7 +536,7 @@ app.get('/api/admin/location-pages', requireAdmin, async (_req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, source_slug, title, city, state, nickname,
-              hero_description, meta_description, stats, areas,
+              hero_description, meta_description, stats, areas, content, links,
               is_active, created_at, updated_at
        FROM location_pages
        ORDER BY created_at DESC`
@@ -568,6 +568,15 @@ function normalizeLocationPage(body) {
   const areas = Array.isArray(body.areas)
     ? body.areas.map(area => String(area).trim()).filter(Boolean).slice(0, 30)
     : [];
+  const content = body.content && typeof body.content === 'object' && !Array.isArray(body.content)
+    ? body.content
+    : {};
+  const links = body.links && typeof body.links === 'object' && !Array.isArray(body.links)
+    ? Object.fromEntries(Object.entries(body.links).map(([key, value]) => {
+        const link = String(value || '').trim();
+        return [key, (link.startsWith('/') && !link.startsWith('//')) || link.startsWith('#') ? link : ''];
+      }))
+    : {};
 
   return {
     value: {
@@ -581,6 +590,8 @@ function normalizeLocationPage(body) {
       meta_description: String(body.meta_description || '').trim(),
       stats: JSON.stringify(stats),
       areas: JSON.stringify(areas),
+      content: JSON.stringify(content),
+      links: JSON.stringify(links),
       is_active: body.is_active !== false,
     },
   };
@@ -595,12 +606,13 @@ app.post('/api/admin/location-pages', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO location_pages
          (slug, source_slug, title, city, state, nickname,
-          hero_description, meta_description, stats, areas, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11)
+          hero_description, meta_description, stats, areas, content, links, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb,$12::jsonb,$13)
        RETURNING *`,
       [
         page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
-        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active,
+        page.hero_description, page.meta_description, page.stats, page.areas,
+        page.content, page.links, page.is_active,
       ]
     );
     res.status(201).json(rows[0]);
@@ -623,12 +635,14 @@ app.put('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
       `UPDATE location_pages
           SET slug=$1, source_slug=$2, title=$3, city=$4, state=$5, nickname=$6,
               hero_description=$7, meta_description=$8, stats=$9::jsonb,
-              areas=$10::jsonb, is_active=$11, updated_at=NOW()
-        WHERE id=$12
+              areas=$10::jsonb, content=$11::jsonb, links=$12::jsonb,
+              is_active=$13, updated_at=NOW()
+        WHERE id=$14
         RETURNING *`,
       [
         page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
-        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active, id,
+        page.hero_description, page.meta_description, page.stats, page.areas,
+        page.content, page.links, page.is_active, id,
       ]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Page not found' });

@@ -10,7 +10,28 @@ const EARNINGS = [
   { tier: "Elite VIP", amount: "₹2,00,000+", hours: "Exclusive HNI Clients", desc: "High net-worth women, luxury outings, travel companionship", featured: false },
 ];
 
-export function EarningsOpportunity() {
+export function EarningsOpportunity({
+  content,
+  ctaHref = '#register',
+}: {
+  content?: {
+    badge?: string;
+    title?: string;
+    description?: string;
+    benefits?: string[];
+    ctaText?: string;
+  };
+  ctaHref?: string;
+}) {
+  const benefits = content?.benefits || [
+    "No experience required — just be presentable & confident",
+    "You choose which women to meet & when",
+    "Work locally in your city or accept travel assignments",
+    "Zero investment — registration is 100% free",
+    "Real cash payments — no delays, no commissions",
+    "Complete identity protection at all times",
+  ];
+
   return (
     <section className="py-24 relative overflow-hidden bg-background border-t border-white/5">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-900/20 via-background to-background pointer-events-none"></div>
@@ -20,24 +41,17 @@ export function EarningsOpportunity() {
         <div className="flex flex-col lg:flex-row gap-12 items-center">
           <div className="lg:w-1/2">
             <div className="inline-block rounded-full bg-primary/10 border border-primary/20 px-4 py-1.5 text-sm font-semibold text-primary mb-6">
-              💰 Life-Changing Income Opportunity
+              {content?.badge || '💰 Life-Changing Income Opportunity'}
             </div>
             <h2 className="text-3xl md:text-5xl font-serif font-bold text-white mb-6 leading-tight">
-              Earn <span className="text-primary">₹20,000 to ₹2,00,000</span> Per Month Doing Gigolo Job
+              {content?.title || <>Earn <span className="text-primary">₹20,000 to ₹2,00,000</span> Per Month Doing Gigolo Job</>}
             </h2>
             <p className="text-lg text-muted-foreground mb-8">
-              Why struggle with a 9-to-5 when real women in your city are <strong className="text-white">willing to pay you</strong> for your company? Thousands of Indian men are already earning this way — flexible, discreet, and genuinely enjoyable.
+              {content?.description || <>Why struggle with a 9-to-5 when real women in your city are <strong className="text-white">willing to pay you</strong> for your company? Thousands of Indian men are already earning this way — flexible, discreet, and genuinely enjoyable.</>}
             </p>
 
             <ul className="space-y-4 mb-10">
-              {[
-                "No experience required — just be presentable & confident",
-                "You choose which women to meet & when",
-                "Work locally in your city or accept travel assignments",
-                "Zero investment — registration is 100% free",
-                "Real cash payments — no delays, no commissions",
-                "Complete identity protection at all times",
-              ].map((point, i) => (
+              {benefits.map((point, i) => (
                 <li key={i} className="flex items-center text-white">
                   <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center mr-3 shrink-0">
                     <Check className="w-3.5 h-3.5 text-primary" />
@@ -48,7 +62,7 @@ export function EarningsOpportunity() {
             </ul>
 
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 h-14 w-full md:w-auto font-bold" asChild>
-              <a href="#register">Apply for Gigolo Job — Free <ArrowRight className="ml-2 w-5 h-5" /></a>
+              <a href={ctaHref}>{content?.ctaText || 'Apply for Gigolo Job — Free'} <ArrowRight className="ml-2 w-5 h-5" /></a>
             </Button>
           </div>
 

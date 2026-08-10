@@ -7,6 +7,13 @@ import {
   Heart, X, Save, Copy, ExternalLink, Globe, FileText,
 } from 'lucide-react';
 import { apiFetch, getImageUrl } from '@/lib/api';
+import {
+  getDefaultLocationContent,
+  getDefaultLocationLinks,
+  mergeLocationContent,
+  type LocationContent,
+  type LocationLinks,
+} from '@/lib/locationContent';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -86,6 +93,8 @@ type LocationPage = {
   meta_description: string;
   stats: LocationStat[];
   areas: string[];
+  content?: LocationContent;
+  links?: LocationLinks;
   is_active: boolean;
   isTemplate?: boolean;
 };
@@ -134,6 +143,15 @@ function LocationPageEditor({
   const [form, setForm] = useState<LocationPage>(initial);
   const [stats, setStats] = useState<LocationStat[]>(initial.stats);
   const [areas, setAreas] = useState(initial.areas.join(', '));
+  const [contentText, setContentText] = useState(() => JSON.stringify(
+    initial.content || getDefaultLocationContent(initial.city, initial.areas),
+    null,
+    2,
+  ));
+  const [links, setLinks] = useState<LocationLinks>({
+    ...getDefaultLocationLinks(),
+    ...(initial.links || {}),
+  });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const update = (key: keyof LocationPage, value: string | boolean) => setForm(prev => ({ ...prev, [key]: value }));
@@ -146,7 +164,21 @@ function LocationPageEditor({
     setSaving(true);
     setError('');
     try {
-      await onSave({ ...form, stats, areas: areas.split(',').map(area => area.trim()).filter(Boolean) });
+      let content: LocationContent;
+      try {
+        content = JSON.parse(contentText);
+        if (!content || typeof content !== 'object' || Array.isArray(content)) throw new Error();
+      } catch {
+        setError('Section content must be valid JSON. Use the default format as a guide.');
+        return;
+      }
+      await onSave({
+        ...form,
+        stats,
+        areas: areas.split(',').map(area => area.trim()).filter(Boolean),
+        content,
+        links,
+      });
     } catch (err: any) {
       setError(err?.message || 'Save failed');
     } finally {
@@ -206,6 +238,49 @@ function LocationPageEditor({
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Service areas</label>
             <Input value={areas} onChange={e => setAreas(e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Area 1, Area 2, Area 3" />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">All section content (JSON)</label>
+            <Textarea
+              value={contentText}
+              onChange={e => setContentText(e.target.value)}
+              className="bg-background border-white/10 text-white min-h-[360px] font-mono text-xs leading-relaxed"
+              spellCheck={false}
+            />
+            <p className="text-muted-foreground text-xs mt-1.5">
+              Edit the text, buttons, cards, FAQs, SEO copy, and profile labels for every section. Keep the JSON structure intact.
+            </p>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Internal links</label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                ['home', 'Home link'],
+                ['heroPrimary', 'Hero primary button'],
+                ['heroSecondary', 'Hero secondary button'],
+                ['galleryProfile', 'Profile card button'],
+                ['galleryAll', 'Gallery button'],
+                ['area', 'Area links'],
+                ['finalCta', 'Final CTA button'],
+                ['earningsCta', 'Earnings CTA button'],
+                ['pricingCta', 'Pricing buttons'],
+                ['terms', 'Terms link'],
+                ['privacy', 'Privacy link'],
+              ].map(([key, label]) => (
+                <div key={key}>
+                  <label className="block text-xs text-muted-foreground mb-1">{label}</label>
+                  <Input
+                    value={links[key] || ''}
+                    onChange={e => setLinks(prev => ({ ...prev, [key]: e.target.value }))}
+                    className="h-9 bg-background border-white/10 text-white"
+                    placeholder="/internal-page or #section"
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-muted-foreground text-xs mt-1.5">Use paths such as <code>/login</code>, <code>/chennai</code>, or anchors such as <code>#register</code>.</p>
           </div>
 
           <div>
@@ -613,7 +688,14 @@ export default function Admin() {
     setLocationsLoading(true);
     try {
       const res = await apiFetch('/api/admin/location-pages', { credentials: 'include' });
-      if (res.ok) setLocationPages(await res.json());
+      if (res.ok) {
+        const pages = await res.json();
+        setLocationPages(pages.map((page: LocationPage) => ({
+          ...page,
+          content: mergeLocationContent(page.city, page.areas || [], page.content),
+          links: { ...getDefaultLocationLinks(), ...(page.links || {}) },
+        })));
+      }
     } finally {
       setLocationsLoading(false);
     }
@@ -648,6 +730,8 @@ export default function Admin() {
       source_slug: page.source_slug || page.slug,
       slug: `${baseSlug}-copy`,
       title: `${page.title} Copy`,
+      content: mergeLocationContent(page.city, page.areas || [], page.content),
+      links: { ...getDefaultLocationLinks(), ...(page.links || {}) },
     });
   };
 

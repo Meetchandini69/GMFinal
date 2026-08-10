@@ -69,16 +69,19 @@ const PLANS = [
   },
 ];
 
-export function PricingPlans() {
+export function PricingPlans({ ctaHref = '#register', content }: {
+  ctaHref?: string;
+  content?: { title?: string; description?: string; footer?: string };
+}) {
   return (
     <section className="py-24 bg-card" id="pricing">
       <div className="container mx-auto px-4 md:px-6">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-            Choose Your <span className="text-primary">Gigolo Membership</span>
+            {content?.title || <>Choose Your <span className="text-primary">Gigolo Membership</span></>}
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Select the membership duration that works best for you and complete your profile after registration.
+            {content?.description || 'Select the membership duration that works best for you and complete your profile after registration.'}
           </p>
         </div>
 
@@ -131,14 +134,14 @@ export function PricingPlans() {
                 variant={plan.buttonVariant as any}
                 asChild
               >
-                <a href="#register">{plan.buttonText}</a>
+                <a href={ctaHref}>{plan.buttonText}</a>
               </Button>
             </div>
           ))}
         </div>
 
         <p className="text-center text-muted-foreground text-sm mt-8">
-          Complete registration first, then choose any one membership plan from your dashboard.
+          {content?.footer || 'Complete registration first, then choose any one membership plan from your dashboard.'}
         </p>
       </div>
     </section>

@@ -89,10 +89,17 @@ await pool.query(`
     meta_description  TEXT,
     stats             JSONB NOT NULL DEFAULT '[]'::jsonb,
     areas             JSONB NOT NULL DEFAULT '[]'::jsonb,
+    content           JSONB NOT NULL DEFAULT '{}'::jsonb,
+    links             JSONB NOT NULL DEFAULT '{}'::jsonb,
     is_active         BOOLEAN DEFAULT TRUE,
     created_at        TIMESTAMPTZ DEFAULT NOW(),
     updated_at        TIMESTAMPTZ DEFAULT NOW()
   );
+
+  ALTER TABLE location_pages
+    ADD COLUMN IF NOT EXISTS content JSONB NOT NULL DEFAULT '{}'::jsonb;
+  ALTER TABLE location_pages
+    ADD COLUMN IF NOT EXISTS links JSONB NOT NULL DEFAULT '{}'::jsonb;
 
   CREATE TABLE IF NOT EXISTS swipe_actions (
     id         SERIAL PRIMARY KEY,
