@@ -377,7 +377,7 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-white/5">
                       {[
                         ['Joining Fees', getJoiningPlanFee(profile.joining_plan)],
-                        ['Telegram', 'Pay on 7597246320'],
+                        ['Telegram', 'Ask for QR Code/UPI ID'],
                       ].map(([k, v]) => (
                         <tr key={k}>
                           <td className="py-2 pr-4 text-muted-foreground w-40">{k}</td>
