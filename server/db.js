@@ -94,6 +94,8 @@ await pool.query(`
     updated_at        TIMESTAMPTZ DEFAULT NOW()
   );
 
+  ALTER TABLE location_pages ADD COLUMN IF NOT EXISTS sections JSONB NOT NULL DEFAULT '{}'::jsonb;
+
   CREATE TABLE IF NOT EXISTS swipe_actions (
     id         SERIAL PRIMARY KEY,
     user_id    INTEGER NOT NULL REFERENCES users(id),

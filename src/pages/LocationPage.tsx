@@ -12,6 +12,7 @@ import {
 } from '@/components/sections';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/api';
+import type { PageSections } from '@/lib/locationSections';
 
 type LocationStat = { label: string; value: string };
 
@@ -26,7 +27,13 @@ type LocationPageData = {
   meta_description?: string;
   stats?: LocationStat[];
   areas?: string[];
+  sections?: PageSections;
 };
+
+function RichOrFallback({ html, fallback, className }: { html?: string; fallback: React.ReactNode; className?: string }) {
+  if (html) return <div className={`hero-rich-content ${className || ''}`} dangerouslySetInnerHTML={{ __html: html }} />;
+  return <p className={className}>{fallback}</p>;
+}
 
 const PROFILE_PHOTOS = [
   '/models/gigolo-girl-1.jpeg',
@@ -40,29 +47,6 @@ const PROFILE_DETAILS = [
   { name: 'Verified Member', status: 'Online today', reward: 'Professional & discreet' },
   { name: 'Verified Member', status: 'Available weekends', reward: 'Events & travel' },
   { name: 'Verified Member', status: 'Responds quickly', reward: 'Private connections' },
-];
-
-const FAQ_QUESTIONS = [
-  {
-    question: 'How do I get started in a gigolo job?',
-    answer: 'Register free, complete your professional profile, and go through our verification process. Once approved, you can start receiving connection requests from people in your city.',
-  },
-  {
-    question: 'Is the platform safe and confidential?',
-    answer: 'We prioritise privacy, clear boundaries, and consensual professional companionship. Keep conversations on the platform, verify who you meet, and always choose a safe public location for a first meeting.',
-  },
-  {
-    question: 'What kind of opportunities are available?',
-    answer: 'Members can explore event companionship, travel companionship, social dates, and private one-to-one companionship based on their schedule and boundaries.',
-  },
-  {
-    question: 'How much can I earn?',
-    answer: 'Earnings vary by experience, availability, service type, and agreement with the client. Use the earning ranges on this page as general examples rather than guaranteed income.',
-  },
-  {
-    question: 'Which areas do you serve?',
-    answer: 'We connect members across the major localities listed below, as well as nearby areas. Your profile can mention the locations where you are comfortable working.',
-  },
 ];
 
 function FaqItem({ question, answer }: { question: string; answer: string }) {
@@ -144,6 +128,63 @@ export default function LocationPage() {
   const areas = page.areas || [];
   const locationLabel = [page.city, page.state].filter(Boolean).join(', ');
   const primaryAreas = areas.length > 0 ? areas : [`Central ${page.city}`, `${page.city} North`, `${page.city} South`];
+  const sections = page.sections || {};
+
+  const overviewFeatures = sections.overview?.features?.length ? sections.overview.features : [
+    { title: 'Earning Potential', description: 'Explore flexible opportunities based on your availability and experience.' },
+    { title: 'Flexible Schedule', description: 'Choose the times and types of companionship that suit your lifestyle.' },
+    { title: 'Professional Network', description: `Discover local opportunities and connections across ${page.city}.` },
+  ];
+  const OVERVIEW_ICONS = [TrendingUp, Clock, Briefcase];
+
+  const whyChooseFeatures = sections.whyChooseUs?.features?.length ? sections.whyChooseUs.features : [
+    { title: 'Privacy & Confidentiality', description: 'Keep your profile and conversations private while you decide who to connect with.' },
+    { title: 'Verified Community', description: 'Profiles are reviewed to help create a more trustworthy experience for everyone.' },
+    { title: 'Flexible Opportunities', description: 'Choose from social events, travel, dates, and other professional companionship arrangements.' },
+    { title: 'Respectful Connections', description: 'Set clear boundaries and connect with people who value professionalism and mutual consent.' },
+  ];
+  const WHY_CHOOSE_ICONS = [Shield, CheckCircle, Sparkles, Heart];
+
+  const benefitPlans = sections.benefits?.plans?.length ? sections.benefits.plans : [
+    { type: 'Event Companionship', range: '₹5,000 – ₹15,000', per: 'per event', description: 'Corporate events, weddings, social gatherings' },
+    { type: 'Travel Companionship', range: '₹10,000 – ₹25,000', per: 'per day', description: 'Outstation trips and weekend getaways' },
+    { type: 'Personalised Sessions', range: '₹7,000 – ₹20,000', per: 'per session', description: 'One-to-one companionship and dates' },
+  ];
+  const BENEFIT_ICONS = [Calendar, Plane, Heart];
+  const benefitHighlights = sections.benefits?.highlights?.length ? sections.benefits.highlights : [
+    'High earning potential', 'Flexible working hours', 'Professional growth and networking', 'Health, safety, and privacy focus',
+  ];
+
+  const memberTypes = sections.opportunities?.memberTypes?.length ? sections.opportunities.memberTypes : [
+    { title: 'Busy professionals', description: `People looking for respectful, flexible companionship in ${primaryAreas[0 % primaryAreas.length]} and nearby areas.` },
+    { title: 'Single adults', description: `People looking for respectful, flexible companionship in ${primaryAreas[1 % primaryAreas.length]} and nearby areas.` },
+    { title: 'Visitors and travellers', description: `People looking for respectful, flexible companionship in ${primaryAreas[2 % primaryAreas.length]} and nearby areas.` },
+    { title: 'People seeking social companions', description: `People looking for respectful, flexible companionship in ${primaryAreas[3 % primaryAreas.length]} and nearby areas.` },
+  ];
+
+  const trustFeatures = sections.trust?.features?.length ? sections.trust.features : [
+    { title: 'Private & Discreet', description: 'Your profile and conversations remain under your control.' },
+    { title: 'Verified Members', description: 'Profiles are reviewed before they are published.' },
+    { title: 'Free Registration', description: 'Create your profile in minutes and start exploring.' },
+  ];
+  const TRUST_ICONS = [Shield, Star, Clock];
+
+  const faqItems = sections.faqs?.items?.length ? sections.faqs.items : [
+    { question: 'How do I get started in a gigolo job?', answer: 'Register free, complete your professional profile, and go through our verification process. Once approved, you can start receiving connection requests from people in your city.' },
+    { question: 'Is the platform safe and confidential?', answer: 'We prioritise privacy, clear boundaries, and consensual professional companionship. Keep conversations on the platform, verify who you meet, and always choose a safe public location for a first meeting.' },
+    { question: 'What kind of opportunities are available?', answer: 'Members can explore event companionship, travel companionship, social dates, and private one-to-one companionship based on their schedule and boundaries.' },
+    { question: 'How much can I earn?', answer: 'Earnings vary by experience, availability, service type, and agreement with the client. Use the earning ranges on this page as general examples rather than guaranteed income.' },
+    { question: 'Which areas do you serve?', answer: 'We connect members across the major localities listed below, as well as nearby areas. Your profile can mention the locations where you are comfortable working.' },
+  ];
+
+  const guideLeftBlocks = sections.guide?.leftBlocks?.length ? sections.guide.leftBlocks : [
+    { title: 'What is a companionship job?', body: `<p>A professional companion provides respectful company for social occasions, dates, travel, and other mutually agreed activities. Members in ${page.city} can create a profile that describes their interests, availability, and boundaries.</p>` },
+    { title: 'How to build a profile', body: '<p>Use a clear photo, write an honest introduction, and explain what makes you a great companion. Good communication and reliability help build lasting professional connections.</p>' },
+  ];
+  const guideRightBlocks = sections.guide?.rightBlocks?.length ? sections.guide.rightBlocks : [
+    { title: `Male companion opportunities in ${page.city}`, body: `<p>Members can explore opportunities around ${primaryAreas.slice(0, 3).join(', ')} and nearby localities. Availability, rates, and arrangements should always be discussed clearly before meeting.</p>` },
+    { title: 'Safety and discretion', body: '<p>Keep personal information private, verify new contacts, share your plans with someone you trust, and meet first in a safe public place. All arrangements should be legal, consensual, and professional.</p>' },
+  ];
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-primary/30 selection:text-primary">
@@ -164,9 +205,16 @@ export default function LocationPage() {
               Gigolo Service in <span className="text-primary">{page.city}</span>
               <br />Premier Male Escort &amp; Call Boy Jobs
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
-              {page.hero_description || `Discover professional companionship opportunities in ${page.city}.`}
-            </p>
+            {page.hero_description ? (
+              <div
+                className="hero-rich-content text-lg md:text-xl text-muted-foreground max-w-2xl mb-10"
+                dangerouslySetInnerHTML={{ __html: page.hero_description }}
+              />
+            ) : (
+              <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
+                Discover professional companionship opportunities in {page.city}.
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row gap-4 mb-14">
               <Button size="lg" className="bg-primary text-black font-bold text-base px-10 h-12" asChild>
                 <a href="#register">Register Free — Start Today →</a>
@@ -193,36 +241,42 @@ export default function LocationPage() {
           <div className="container mx-auto px-4 md:px-6 max-w-4xl">
             <div className="text-center mb-10">
               <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-4">
-                Understanding Companionship in <span className="text-primary">{page.city}</span>
+                {sections.overview?.heading || (
+                  <>Understanding Companionship in <span className="text-primary">{page.city}</span></>
+                )}
               </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                Gigolomeet.in connects adults seeking respectful, consensual companionship with verified members in {page.city}. Build your profile, choose your schedule, and connect privately.
-              </p>
+              <RichOrFallback
+                html={sections.overview?.intro}
+                className="text-muted-foreground leading-relaxed"
+                fallback={`Gigolomeet.in connects adults seeking respectful, consensual companionship with verified members in ${page.city}. Build your profile, choose your schedule, and connect privately.`}
+              />
             </div>
             <div className="bg-background border border-white/10 rounded-2xl p-6 md:p-8 mb-8 text-muted-foreground leading-relaxed text-sm md:text-base">
-              <p className="mb-4">
-                Our professional network helps members discover discreet, premium companionship opportunities across {page.city}. Whether you are exploring event companionship, social dates, or a flexible new career path, clear communication and mutual respect come first.
-              </p>
-              <p>
-                Create a polished profile, set your boundaries, and connect with people who are looking for genuine company in {page.city}. Every interaction should be professional, private, and consensual.
-              </p>
+              <RichOrFallback
+                html={sections.overview?.body1}
+                className="mb-4"
+                fallback={`Our professional network helps members discover discreet, premium companionship opportunities across ${page.city}. Whether you are exploring event companionship, social dates, or a flexible new career path, clear communication and mutual respect come first.`}
+              />
+              <RichOrFallback
+                html={sections.overview?.body2}
+                fallback={`Create a polished profile, set your boundaries, and connect with people who are looking for genuine company in ${page.city}. Every interaction should be professional, private, and consensual.`}
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                { icon: TrendingUp, title: 'Earning Potential', desc: 'Explore flexible opportunities based on your availability and experience.' },
-                { icon: Clock, title: 'Flexible Schedule', desc: 'Choose the times and types of companionship that suit your lifestyle.' },
-                { icon: Briefcase, title: 'Professional Network', desc: `Discover local opportunities and connections across ${page.city}.` },
-              ].map(({ icon: Icon, title, desc }) => (
-                <motion.div key={title} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex gap-4 bg-background border border-white/10 rounded-xl p-5">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                    <Icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="text-white font-semibold mb-1 text-sm">{title}</h3>
-                    <p className="text-muted-foreground text-xs leading-relaxed">{desc}</p>
-                  </div>
-                </motion.div>
-              ))}
+              {overviewFeatures.map((feature, index) => {
+                const Icon = OVERVIEW_ICONS[index] ?? OVERVIEW_ICONS[OVERVIEW_ICONS.length - 1];
+                return (
+                  <motion.div key={`${feature.title}-${index}`} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex gap-4 bg-background border border-white/10 rounded-xl p-5">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                      <Icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-white font-semibold mb-1 text-sm">{feature.title}</h3>
+                      <p className="text-muted-foreground text-xs leading-relaxed">{feature.description}</p>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -232,11 +286,15 @@ export default function LocationPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-                Members in <span className="text-primary">{page.city}</span>
+                {sections.gallery?.heading || (
+                  <>Members in <span className="text-primary">{page.city}</span></>
+                )}
               </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto">
-                Discover verified members looking for professional companionship in {page.city}. Register free to unlock full profiles and start a conversation.
-              </p>
+              <RichOrFallback
+                html={sections.gallery?.intro}
+                className="text-muted-foreground max-w-xl mx-auto"
+                fallback={`Discover verified members looking for professional companionship in ${page.city}. Register free to unlock full profiles and start a conversation.`}
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               {PROFILE_DETAILS.map((profile, index) => (
@@ -283,22 +341,26 @@ export default function LocationPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
-                Why Choose <span className="text-primary">Gigolomeet.in</span> in {page.city}?
+                {sections.whyChooseUs?.heading || (
+                  <>Why Choose <span className="text-primary">Gigolomeet.in</span> in {page.city}?</>
+                )}
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">A professional, private platform for meaningful local connections and flexible companionship opportunities.</p>
+              <RichOrFallback
+                html={sections.whyChooseUs?.intro}
+                className="text-muted-foreground max-w-2xl mx-auto"
+                fallback="A professional, private platform for meaningful local connections and flexible companionship opportunities."
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-              {[
-                { icon: Shield, title: 'Privacy & Confidentiality', desc: 'Keep your profile and conversations private while you decide who to connect with.' },
-                { icon: CheckCircle, title: 'Verified Community', desc: 'Profiles are reviewed to help create a more trustworthy experience for everyone.' },
-                { icon: Sparkles, title: 'Flexible Opportunities', desc: 'Choose from social events, travel, dates, and other professional companionship arrangements.' },
-                { icon: Heart, title: 'Respectful Connections', desc: 'Set clear boundaries and connect with people who value professionalism and mutual consent.' },
-              ].map(({ icon: Icon, title, desc }) => (
-                <motion.div key={title} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex gap-4 bg-background border border-white/10 rounded-2xl p-6">
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Icon className="w-5 h-5 text-primary" /></div>
-                  <div><h3 className="text-white font-semibold mb-2">{title}</h3><p className="text-muted-foreground text-sm leading-relaxed">{desc}</p></div>
-                </motion.div>
-              ))}
+              {whyChooseFeatures.map((feature, index) => {
+                const Icon = WHY_CHOOSE_ICONS[index] ?? WHY_CHOOSE_ICONS[WHY_CHOOSE_ICONS.length - 1];
+                return (
+                  <motion.div key={`${feature.title}-${index}`} initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="flex gap-4 bg-background border border-white/10 rounded-2xl p-6">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0"><Icon className="w-5 h-5 text-primary" /></div>
+                    <div><h3 className="text-white font-semibold mb-2">{feature.title}</h3><p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p></div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -307,27 +369,34 @@ export default function LocationPage() {
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 md:px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Benefits of <span className="text-primary">Companionship Jobs</span> in {page.city}</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">Build a flexible professional path with opportunities designed around your schedule and comfort.</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
+                {sections.benefits?.heading || (
+                  <>Benefits of <span className="text-primary">Companionship Jobs</span> in {page.city}</>
+                )}
+              </h2>
+              <RichOrFallback
+                html={sections.benefits?.intro}
+                className="text-muted-foreground max-w-2xl mx-auto"
+                fallback="Build a flexible professional path with opportunities designed around your schedule and comfort."
+              />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14 max-w-4xl mx-auto">
-              {[
-                { icon: Calendar, type: 'Event Companionship', range: '₹5,000 – ₹15,000', per: 'per event', desc: 'Corporate events, weddings, social gatherings' },
-                { icon: Plane, type: 'Travel Companionship', range: '₹10,000 – ₹25,000', per: 'per day', desc: 'Outstation trips and weekend getaways' },
-                { icon: Heart, type: 'Personalised Sessions', range: '₹7,000 – ₹20,000', per: 'per session', desc: 'One-to-one companionship and dates' },
-              ].map(({ icon: Icon, type, range, per, desc }) => (
-                <div key={type} className="border border-primary/30 bg-primary/5 rounded-2xl p-6 text-center">
-                  <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4"><Icon className="w-5 h-5 text-primary" /></div>
-                  <h3 className="text-white font-semibold mb-3">{type}</h3>
-                  <div className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-primary bg-primary/10 mb-1">{range}</div>
-                  <p className="text-muted-foreground text-xs mb-3">{per}</p>
-                  <p className="text-muted-foreground text-xs">{desc}</p>
-                </div>
-              ))}
+              {benefitPlans.map((plan, index) => {
+                const Icon = BENEFIT_ICONS[index] ?? BENEFIT_ICONS[BENEFIT_ICONS.length - 1];
+                return (
+                  <div key={`${plan.type}-${index}`} className="border border-primary/30 bg-primary/5 rounded-2xl p-6 text-center">
+                    <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4"><Icon className="w-5 h-5 text-primary" /></div>
+                    <h3 className="text-white font-semibold mb-3">{plan.type}</h3>
+                    <div className="inline-block px-4 py-1.5 rounded-full text-sm font-bold text-primary bg-primary/10 mb-1">{plan.range}</div>
+                    <p className="text-muted-foreground text-xs mb-3">{plan.per}</p>
+                    <p className="text-muted-foreground text-xs">{plan.description}</p>
+                  </div>
+                );
+              })}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-4xl mx-auto">
-              {['High earning potential', 'Flexible working hours', 'Professional growth and networking', 'Health, safety, and privacy focus'].map(benefit => (
-                <div key={benefit} className="flex gap-4 bg-card border border-white/10 rounded-xl p-5"><CheckCircle className="w-5 h-5 text-primary shrink-0" /><span className="text-white font-semibold text-sm">{benefit}</span></div>
+              {benefitHighlights.map((benefit, index) => (
+                <div key={`${benefit}-${index}`} className="flex gap-4 bg-card border border-white/10 rounded-xl p-5"><CheckCircle className="w-5 h-5 text-primary shrink-0" /><span className="text-white font-semibold text-sm">{benefit}</span></div>
               ))}
             </div>
           </div>
@@ -338,8 +407,16 @@ export default function LocationPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
               <div>
-                <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Local Opportunities in <span className="text-primary">{page.city}</span></h2>
-                <p className="text-muted-foreground leading-relaxed mb-6">The demand for professional companionship continues to grow in {page.city}. A complete profile helps people discover your availability and interests.</p>
+                <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
+                  {sections.opportunities?.heading || (
+                    <>Local Opportunities in <span className="text-primary">{page.city}</span></>
+                  )}
+                </h2>
+                <RichOrFallback
+                  html={sections.opportunities?.intro}
+                  className="text-muted-foreground leading-relaxed mb-6"
+                  fallback={`The demand for professional companionship continues to grow in ${page.city}. A complete profile helps people discover your availability and interests.`}
+                />
                 <div className="space-y-3">
                   {[
                     { stat: stats[0]?.value || 'Growing', label: `members connected in ${page.city}` },
@@ -353,8 +430,8 @@ export default function LocationPage() {
               <div>
                 <h3 className="text-white font-semibold mb-4 flex items-center gap-2"><Users className="w-4 h-4 text-primary" /> Who are our members?</h3>
                 <div className="space-y-4">
-                  {['Busy professionals', 'Single adults', 'Visitors and travellers', 'People seeking social companions'].map((type, index) => (
-                    <div key={type} className="bg-background border border-white/10 rounded-xl p-4"><div className="text-white font-semibold text-sm mb-1">{type}</div><div className="text-muted-foreground text-xs leading-relaxed">People looking for respectful, flexible companionship in {primaryAreas[index % primaryAreas.length]} and nearby areas.</div></div>
+                  {memberTypes.map((member, index) => (
+                    <div key={`${member.title}-${index}`} className="bg-background border border-white/10 rounded-xl p-4"><div className="text-white font-semibold text-sm mb-1">{member.title}</div><div className="text-muted-foreground text-xs leading-relaxed">{member.description}</div></div>
                   ))}
                 </div>
               </div>
@@ -366,13 +443,12 @@ export default function LocationPage() {
         <section className="py-14 bg-background">
           <div className="container mx-auto px-4 md:px-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              {[
-                { icon: Shield, title: 'Private & Discreet', desc: 'Your profile and conversations remain under your control.' },
-                { icon: Star, title: 'Verified Members', desc: 'Profiles are reviewed before they are published.' },
-                { icon: Clock, title: 'Free Registration', desc: 'Create your profile in minutes and start exploring.' },
-              ].map(({ icon: Icon, title, desc }) => (
-                <div key={title} className="flex flex-col items-center text-center p-6 bg-card rounded-2xl border border-white/10"><div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4"><Icon className="w-5 h-5 text-primary" /></div><h3 className="text-white font-semibold mb-2">{title}</h3><p className="text-muted-foreground text-sm">{desc}</p></div>
-              ))}
+              {trustFeatures.map((feature, index) => {
+                const Icon = TRUST_ICONS[index] ?? TRUST_ICONS[TRUST_ICONS.length - 1];
+                return (
+                  <div key={`${feature.title}-${index}`} className="flex flex-col items-center text-center p-6 bg-card rounded-2xl border border-white/10"><div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4"><Icon className="w-5 h-5 text-primary" /></div><h3 className="text-white font-semibold mb-2">{feature.title}</h3><p className="text-muted-foreground text-sm">{feature.description}</p></div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -383,9 +459,15 @@ export default function LocationPage() {
             <div className="container mx-auto px-4 md:px-6">
               <div className="text-center mb-10">
                 <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-3">
-                  Local Areas in <span className="text-primary">{page.city}</span> We Serve
+                  {sections.areasIntro?.heading || (
+                    <>Local Areas in <span className="text-primary">{page.city}</span> We Serve</>
+                  )}
                 </h2>
-                <p className="text-muted-foreground">Members from major localities across {page.city}.</p>
+                <RichOrFallback
+                  html={sections.areasIntro?.intro}
+                  className="text-muted-foreground"
+                  fallback={`Members from major localities across ${page.city}.`}
+                />
               </div>
               <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
                 {primaryAreas.map(area => (
@@ -401,16 +483,41 @@ export default function LocationPage() {
         {/* FAQs and SEO content */}
         <section className="py-20 bg-background">
           <div className="container mx-auto px-4 md:px-6 max-w-3xl">
-            <div className="text-center mb-12"><h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Local <span className="text-primary">FAQs</span></h2><p className="text-muted-foreground">Everything you need to know about opportunities in {page.city}.</p></div>
-            <div className="space-y-3">{FAQ_QUESTIONS.map(item => <FaqItem key={item.question} question={item.question} answer={item.answer} />)}</div>
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
+                {sections.faqs?.heading || <>Local <span className="text-primary">FAQs</span></>}
+              </h2>
+              <RichOrFallback
+                html={sections.faqs?.intro}
+                className="text-muted-foreground"
+                fallback={`Everything you need to know about opportunities in ${page.city}.`}
+              />
+            </div>
+            <div className="space-y-3">{faqItems.map((item, index) => <FaqItem key={`${item.question}-${index}`} question={item.question} answer={item.answer} />)}</div>
           </div>
         </section>
         <section className="py-16 bg-card">
           <div className="container mx-auto px-4 md:px-6 max-w-4xl">
-            <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-8">Companionship Opportunities in {page.city} — Complete Guide</h2>
+            <h2 className="text-2xl md:text-3xl font-serif font-bold text-white mb-8">
+              {sections.guide?.heading || `Companionship Opportunities in ${page.city} — Complete Guide`}
+            </h2>
             <div className="grid md:grid-cols-2 gap-8 text-muted-foreground text-sm leading-relaxed">
-              <div><h3 className="text-white font-semibold text-base mb-3">What is a companionship job?</h3><p className="mb-5">A professional companion provides respectful company for social occasions, dates, travel, and other mutually agreed activities. Members in {page.city} can create a profile that describes their interests, availability, and boundaries.</p><h3 className="text-white font-semibold text-base mb-3">How to build a profile</h3><p>Use a clear photo, write an honest introduction, and explain what makes you a great companion. Good communication and reliability help build lasting professional connections.</p></div>
-              <div><h3 className="text-white font-semibold text-base mb-3">Male companion opportunities in {page.city}</h3><p className="mb-5">Members can explore opportunities around {primaryAreas.slice(0, 3).join(', ')} and nearby localities. Availability, rates, and arrangements should always be discussed clearly before meeting.</p><h3 className="text-white font-semibold text-base mb-3">Safety and discretion</h3><p>Keep personal information private, verify new contacts, share your plans with someone you trust, and meet first in a safe public place. All arrangements should be legal, consensual, and professional.</p></div>
+              <div>
+                {guideLeftBlocks.map((block, index) => (
+                  <React.Fragment key={`${block.title}-${index}`}>
+                    <h3 className="text-white font-semibold text-base mb-3">{block.title}</h3>
+                    <div className={index < guideLeftBlocks.length - 1 ? 'mb-5' : ''} dangerouslySetInnerHTML={{ __html: block.body }} />
+                  </React.Fragment>
+                ))}
+              </div>
+              <div>
+                {guideRightBlocks.map((block, index) => (
+                  <React.Fragment key={`${block.title}-${index}`}>
+                    <h3 className="text-white font-semibold text-base mb-3">{block.title}</h3>
+                    <div className={index < guideRightBlocks.length - 1 ? 'mb-5' : ''} dangerouslySetInnerHTML={{ __html: block.body }} />
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
             <p className="text-muted-foreground text-xs mt-8 border-t border-white/10 pt-6">This content provides general information and is not legal or professional advice. All services are based on mutual consent and professionalism.</p>
           </div>
@@ -421,8 +528,14 @@ export default function LocationPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="max-w-3xl mx-auto text-center bg-card border border-primary/20 rounded-3xl p-10">
               <div className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-semibold text-primary mb-6"><Sparkles className="w-3.5 h-3.5 mr-2" /> Join the {page.city} Community</div>
-              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">Ready to start your journey?</h2>
-              <p className="text-muted-foreground mb-8 text-lg">Create your profile and discover professional companionship opportunities in {page.city}.</p>
+              <h2 className="text-3xl md:text-4xl font-serif font-bold text-white mb-4">
+                {sections.cta?.heading || 'Ready to start your journey?'}
+              </h2>
+              <RichOrFallback
+                html={sections.cta?.intro}
+                className="text-muted-foreground mb-8 text-lg"
+                fallback={`Create your profile and discover professional companionship opportunities in ${page.city}.`}
+              />
               <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-12" asChild><a href="#register">Register Now — It's Free →</a></Button>
             </div>
           </div>

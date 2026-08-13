@@ -4,7 +4,7 @@ import {
   Crown, LogOut, Users, CheckCircle, Clock, XCircle,
   Key, ChevronDown, ChevronUp, UserCheck, AlertCircle,
   ImagePlus, Pencil, Trash2, ToggleLeft, ToggleRight, Plus,
-  Heart, X, Save, Copy, ExternalLink, Globe, FileText,
+  Heart, X, Save, Copy, ExternalLink, Globe, FileText, LayoutTemplate,
 } from 'lucide-react';
 import { apiFetch, getImageUrl } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -162,7 +162,7 @@ function LocationPageEditor({
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center"><Globe className="w-4 h-4 text-primary" /></div>
             <div>
               <h3 className="text-white font-bold">{initial.id ? 'Edit Location Page' : 'Clone Location Page'}</h3>
-              <p className="text-muted-foreground text-xs">Set the public URL and location content.</p>
+              <p className="text-muted-foreground text-xs">Set the public URL, then use "Edit with Builder" to customize page content.</p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-white"><X className="w-5 h-5" /></button>
@@ -195,10 +195,6 @@ function LocationPageEditor({
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Hero description</label>
-            <Textarea value={form.hero_description} onChange={e => update('hero_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[80px]" />
-          </div>
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">SEO meta description</label>
             <Textarea value={form.meta_description} onChange={e => update('meta_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[65px]" />
@@ -1180,6 +1176,13 @@ export default function Admin() {
                         <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => setLocationEditor(page)}>
                           <Pencil className="w-3 h-3 mr-1" /> Edit
                         </Button>
+                        {page.id && (
+                          <Link href={`/admin/builder/${page.id}`}>
+                            <Button size="sm" className="h-8 text-xs bg-primary text-black font-semibold">
+                              <LayoutTemplate className="w-3 h-3 mr-1" /> Edit with Builder
+                            </Button>
+                          </Link>
+                        )}
                         <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => cloneLocationPage(page)}>
                           <Copy className="w-3 h-3 mr-1" /> Duplicate
                         </Button>

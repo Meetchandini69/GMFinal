@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Admin from './pages/Admin';
+import AdminPageBuilder from './pages/AdminPageBuilder';
 import Coimbatore from './pages/Coimbatore';
 import Kolkata from './pages/Kolkata';
 import Hyderabad from './pages/Hyderabad';
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />
+      <Route path="/admin/builder/:id" component={AdminPageBuilder} />
       <Route path="/coimbatore" component={Coimbatore} />
       <Route path="/kolkata" component={Kolkata} />
       <Route path="/hyderabad" component={Hyderabad} />

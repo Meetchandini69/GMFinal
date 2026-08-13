@@ -51,3 +51,92 @@ body {
 .gold-glow:hover {
   box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
 }
+
+/* Dark-theme overrides for the ReactQuill rich text editor used in Admin */
+.admin-quill .ql-toolbar.ql-snow {
+  background-color: var(--color-input);
+  border-color: var(--color-border);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+
+.admin-quill .ql-container.ql-snow {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+  border-radius: 0 0 var(--radius) var(--radius);
+  min-height: 80px;
+}
+
+.admin-quill .ql-editor {
+  color: var(--color-foreground);
+  min-height: 80px;
+}
+
+.admin-quill .ql-editor.ql-blank::before {
+  color: var(--color-muted-foreground);
+  font-style: normal;
+}
+
+.admin-quill .ql-snow .ql-stroke {
+  stroke: var(--color-muted-foreground);
+}
+
+.admin-quill .ql-snow .ql-fill {
+  fill: var(--color-muted-foreground);
+}
+
+.admin-quill .ql-snow .ql-picker {
+  color: var(--color-muted-foreground);
+}
+
+.admin-quill .ql-snow.ql-toolbar button:hover,
+.admin-quill .ql-snow .ql-toolbar button:hover,
+.admin-quill .ql-snow.ql-toolbar button.ql-active,
+.admin-quill .ql-snow .ql-toolbar button.ql-active {
+  color: var(--color-primary);
+}
+
+.admin-quill .ql-snow.ql-toolbar button:hover .ql-stroke,
+.admin-quill .ql-snow .ql-toolbar button:hover .ql-stroke,
+.admin-quill .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.admin-quill .ql-snow .ql-toolbar button.ql-active .ql-stroke {
+  stroke: var(--color-primary);
+}
+
+.admin-quill .ql-snow.ql-toolbar button:hover .ql-fill,
+.admin-quill .ql-snow .ql-toolbar button:hover .ql-fill,
+.admin-quill .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.admin-quill .ql-snow .ql-toolbar button.ql-active .ql-fill {
+  fill: var(--color-primary);
+}
+
+.admin-quill .ql-snow .ql-picker-options {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+}
+
+.admin-quill .ql-snow .ql-tooltip {
+  background-color: var(--color-card);
+  border-color: var(--color-border);
+  color: var(--color-foreground);
+  box-shadow: none;
+}
+
+.admin-quill .ql-snow .ql-tooltip input[type="text"] {
+  background-color: var(--color-input);
+  color: var(--color-foreground);
+  border-color: var(--color-border);
+}
+
+/* Public location page hero content, rendered from stored rich text HTML */
+.hero-rich-content p {
+  margin: 0;
+}
+
+.hero-rich-content p + p {
+  margin-top: 0.75em;
+}
+
+.hero-rich-content a {
+  color: var(--color-primary);
+  text-decoration: underline;
+}

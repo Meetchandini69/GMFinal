@@ -5,6 +5,7 @@ import connectPgSimple from 'connect-pg-simple';   // <-- Add thiss
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import sanitizeHtml from 'sanitize-html';
 import { mkdirSync } from 'fs';
 import path from 'path';
 import fs from "fs";
@@ -216,7 +217,7 @@ app.get('/api/location-pages/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, source_slug, title, city, state, nickname,
-              hero_description, meta_description, stats, areas
+              hero_description, meta_description, stats, areas, sections
        FROM location_pages
        WHERE slug = $1 AND is_active = TRUE`,
       [req.params.slug.toLowerCase()]
@@ -536,7 +537,7 @@ app.get('/api/admin/location-pages', requireAdmin, async (_req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, source_slug, title, city, state, nickname,
-              hero_description, meta_description, stats, areas,
+              hero_description, meta_description, stats, areas, sections,
               is_active, created_at, updated_at
        FROM location_pages
        ORDER BY created_at DESC`
@@ -547,6 +548,122 @@ app.get('/api/admin/location-pages', requireAdmin, async (_req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
+
+app.get('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) return res.status(400).json({ error: 'Invalid page ID' });
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, source_slug, title, city, state, nickname,
+              hero_description, meta_description, stats, areas, sections,
+              is_active, created_at, updated_at
+       FROM location_pages
+       WHERE id = $1`,
+      [id]
+    );
+    if (!rows[0]) return res.status(404).json({ error: 'Page not found' });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+const HERO_DESCRIPTION_SANITIZE_OPTIONS = {
+  allowedTags: ['p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li', 'a', 'h2', 'h3', 'h4', 'blockquote'],
+  allowedAttributes: { a: ['href', 'target', 'rel'] },
+  allowedSchemes: ['http', 'https', 'mailto'],
+  transformTags: {
+    a: sanitizeHtml.simpleTransform('a', { rel: 'noopener noreferrer' }),
+  },
+};
+
+const PLAIN_SANITIZE_OPTIONS = { allowedTags: [], allowedAttributes: {} };
+
+function cleanPlain(value, maxLen = 300) {
+  return sanitizeHtml(String(value ?? ''), PLAIN_SANITIZE_OPTIONS).trim().slice(0, maxLen);
+}
+
+function cleanRich(value) {
+  const sanitized = sanitizeHtml(String(value ?? ''), HERO_DESCRIPTION_SANITIZE_OPTIONS).trim();
+  // Rich text editors (Quill) can emit a content-free wrapper like "<p><br></p>" just from
+  // mounting — treat that the same as empty so it doesn't override a field's default text.
+  const hasVisibleText = sanitized.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').trim().length > 0;
+  return hasVisibleText ? sanitized : '';
+}
+
+function cleanItems(list, max, fields) {
+  if (!Array.isArray(list)) return [];
+  return list.slice(0, max)
+    .map(item => {
+      const cleaned = {};
+      for (const [key, kind] of Object.entries(fields)) {
+        cleaned[key] = kind === 'rich' ? cleanRich(item?.[key]) : cleanPlain(item?.[key], kind === 'long' ? 600 : 200);
+      }
+      return cleaned;
+    })
+    .filter(item => Object.values(item).some(Boolean));
+}
+
+const FEATURE_FIELDS = { title: 'plain', description: 'long' };
+
+function normalizeSections(raw) {
+  const s = raw && typeof raw === 'object' ? raw : {};
+  const sec = (key) => (s[key] && typeof s[key] === 'object' ? s[key] : {});
+
+  return {
+    overview: {
+      heading: cleanPlain(sec('overview').heading),
+      intro: cleanRich(sec('overview').intro),
+      body1: cleanRich(sec('overview').body1),
+      body2: cleanRich(sec('overview').body2),
+      features: cleanItems(sec('overview').features, 4, FEATURE_FIELDS),
+    },
+    gallery: {
+      heading: cleanPlain(sec('gallery').heading),
+      intro: cleanRich(sec('gallery').intro),
+    },
+    whyChooseUs: {
+      heading: cleanPlain(sec('whyChooseUs').heading),
+      intro: cleanRich(sec('whyChooseUs').intro),
+      features: cleanItems(sec('whyChooseUs').features, 4, FEATURE_FIELDS),
+    },
+    benefits: {
+      heading: cleanPlain(sec('benefits').heading),
+      intro: cleanRich(sec('benefits').intro),
+      plans: cleanItems(sec('benefits').plans, 3, { type: 'plain', range: 'plain', per: 'plain', description: 'long' }),
+      highlights: Array.isArray(sec('benefits').highlights)
+        ? sec('benefits').highlights.map(v => cleanPlain(v, 120)).filter(Boolean).slice(0, 6)
+        : [],
+    },
+    opportunities: {
+      heading: cleanPlain(sec('opportunities').heading),
+      intro: cleanRich(sec('opportunities').intro),
+      memberTypes: cleanItems(sec('opportunities').memberTypes, 4, FEATURE_FIELDS),
+    },
+    trust: {
+      features: cleanItems(sec('trust').features, 3, FEATURE_FIELDS),
+    },
+    areasIntro: {
+      heading: cleanPlain(sec('areasIntro').heading),
+      intro: cleanRich(sec('areasIntro').intro),
+    },
+    faqs: {
+      heading: cleanPlain(sec('faqs').heading),
+      intro: cleanRich(sec('faqs').intro),
+      items: cleanItems(sec('faqs').items, 12, { question: 'plain', answer: 'long' }),
+    },
+    guide: {
+      heading: cleanPlain(sec('guide').heading),
+      leftBlocks: cleanItems(sec('guide').leftBlocks, 2, { title: 'plain', body: 'rich' }),
+      rightBlocks: cleanItems(sec('guide').rightBlocks, 2, { title: 'plain', body: 'rich' }),
+    },
+    cta: {
+      heading: cleanPlain(sec('cta').heading),
+      intro: cleanRich(sec('cta').intro),
+    },
+  };
+}
 
 function normalizeLocationPage(body) {
   const slug = String(body.slug || '')
@@ -577,10 +694,11 @@ function normalizeLocationPage(body) {
       city,
       state: String(body.state || '').trim(),
       nickname: String(body.nickname || '').trim(),
-      hero_description: String(body.hero_description || '').trim(),
+      hero_description: cleanRich(body.hero_description),
       meta_description: String(body.meta_description || '').trim(),
       stats: JSON.stringify(stats),
       areas: JSON.stringify(areas),
+      sections: JSON.stringify(normalizeSections(body.sections)),
       is_active: body.is_active !== false,
     },
   };
@@ -595,12 +713,12 @@ app.post('/api/admin/location-pages', requireAdmin, async (req, res) => {
     const { rows } = await pool.query(
       `INSERT INTO location_pages
          (slug, source_slug, title, city, state, nickname,
-          hero_description, meta_description, stats, areas, is_active)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11)
+          hero_description, meta_description, stats, areas, sections, is_active)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9::jsonb,$10::jsonb,$11::jsonb,$12)
        RETURNING *`,
       [
         page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
-        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active,
+        page.hero_description, page.meta_description, page.stats, page.areas, page.sections, page.is_active,
       ]
     );
     res.status(201).json(rows[0]);
@@ -623,12 +741,12 @@ app.put('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
       `UPDATE location_pages
           SET slug=$1, source_slug=$2, title=$3, city=$4, state=$5, nickname=$6,
               hero_description=$7, meta_description=$8, stats=$9::jsonb,
-              areas=$10::jsonb, is_active=$11, updated_at=NOW()
-        WHERE id=$12
+              areas=$10::jsonb, sections=$11::jsonb, is_active=$12, updated_at=NOW()
+        WHERE id=$13
         RETURNING *`,
       [
         page.slug, page.source_slug, page.title, page.city, page.state, page.nickname,
-        page.hero_description, page.meta_description, page.stats, page.areas, page.is_active, id,
+        page.hero_description, page.meta_description, page.stats, page.areas, page.sections, page.is_active, id,
       ]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Page not found' });
