@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLocation } from 'wouter';
+import { LocationDirectory } from './LocationDirectory';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -222,6 +223,8 @@ export function Navbar() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <LocationDirectory />
     </>
   );
 }

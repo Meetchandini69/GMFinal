@@ -1,4 +1,5 @@
 export { Navbar } from './Navbar';
+export { LocationDirectory } from './LocationDirectory';
 export { Hero } from './Hero';
 export { CitiesCoverage } from './CitiesCoverage';
 export { MemberGallery } from './MemberGallery';

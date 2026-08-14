@@ -230,6 +230,22 @@ app.get('/api/location-pages/:slug', async (req, res) => {
   }
 });
 
+// Public directory of all published location pages (state -> city), for site-wide navigation
+app.get('/api/locations/directory', async (_req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT slug, city, state
+       FROM location_pages
+       WHERE is_active = TRUE
+       ORDER BY state, city`
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Admin login
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body;
