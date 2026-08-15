@@ -1,1 +1,5 @@
 node_modules
+
+# Auto-generated at server startup and after every location-page change (see regenerateSitemap in server/index.js)
+public/sitemap.xml
+public/robots.txt

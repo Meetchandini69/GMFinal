@@ -15,6 +15,46 @@ import pool from './db.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
+const PUBLIC_DIR = path.join(__dirname, '../public');
+const SITE_URL = (process.env.SITE_URL || 'https://gigolomeet.in').replace(/\/+$/, '');
+
+// Routes that exist outside the location_pages table (dedicated legacy pages).
+const STATIC_ROUTES = [
+  { path: '/', priority: '1.0', changefreq: 'daily' },
+  { path: '/coimbatore', priority: '0.8', changefreq: 'weekly' },
+  { path: '/hyderabad', priority: '0.8', changefreq: 'weekly' },
+  { path: '/kolkata', priority: '0.8', changefreq: 'weekly' },
+];
+
+function escapeXml(value) {
+  return String(value).replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
+}
+
+// Regenerates public/sitemap.xml (and robots.txt) from the current database state.
+// Called at startup and after every admin create/update/delete of a location page,
+// so the sitemap always reflects what's actually published — no manual step needed.
+async function regenerateSitemap() {
+  try {
+    const { rows } = await pool.query(
+      `SELECT slug, updated_at FROM location_pages WHERE is_active = TRUE ORDER BY slug`
+    );
+    const staticPaths = new Set(STATIC_ROUTES.map(r => r.path));
+    const dbUrls = rows
+      .filter(row => !staticPaths.has(`/${row.slug}`))
+      .map(row => `  <url>\n    <loc>${escapeXml(`${SITE_URL}/${row.slug}`)}</loc>\n    <lastmod>${new Date(row.updated_at).toISOString().slice(0, 10)}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`);
+    const staticUrls = STATIC_ROUTES.map(r =>
+      `  <url>\n    <loc>${escapeXml(`${SITE_URL}${r.path}`)}</loc>\n    <changefreq>${r.changefreq}</changefreq>\n    <priority>${r.priority}</priority>\n  </url>`
+    );
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[...staticUrls, ...dbUrls].join('\n')}\n</urlset>\n`;
+    fs.writeFileSync(path.join(PUBLIC_DIR, 'sitemap.xml'), xml, 'utf8');
+
+    const robots = `User-agent: *\nDisallow: /admin\nDisallow: /admin/\nDisallow: /dashboard\nDisallow: /login\n\nSitemap: ${SITE_URL}/sitemap.xml\n`;
+    fs.writeFileSync(path.join(PUBLIC_DIR, 'robots.txt'), robots, 'utf8');
+  } catch (err) {
+    console.error('Failed to regenerate sitemap.xml:', err);
+  }
+}
 
 console.log("__dirname =", __dirname);
 console.log("UPLOADS_DIR =", UPLOADS_DIR);
@@ -737,6 +777,7 @@ app.post('/api/admin/location-pages', requireAdmin, async (req, res) => {
         page.hero_description, page.meta_description, page.stats, page.areas, page.sections, page.is_active,
       ]
     );
+    await regenerateSitemap();
     res.status(201).json(rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'That URL slug is already in use' });
@@ -766,6 +807,7 @@ app.put('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
       ]
     );
     if (!rows[0]) return res.status(404).json({ error: 'Page not found' });
+    await regenerateSitemap();
     res.json(rows[0]);
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'That URL slug is already in use' });
@@ -780,6 +822,7 @@ app.delete('/api/admin/location-pages/:id', requireAdmin, async (req, res) => {
   try {
     const { rowCount } = await pool.query('DELETE FROM location_pages WHERE id = $1', [id]);
     if (!rowCount) return res.status(404).json({ error: 'Page not found' });
+    await regenerateSitemap();
     res.json({ ok: true });
   } catch (err) {
     console.error(err);
@@ -962,6 +1005,8 @@ app.delete('/api/admin/women/:id', requireAdmin, async (req, res) => {
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────
+await regenerateSitemap();
+
 app.listen(PORT, () => {
   console.log(`🚀 API server running on http://localhost:${PORT}`);
 });
