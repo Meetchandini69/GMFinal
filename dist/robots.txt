@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin
+Disallow: /admin/
+Disallow: /dashboard
+Disallow: /login
+
+Sitemap: https://gigolomeet.in/sitemap.xml
