@@ -130,6 +130,7 @@ body {
 /* Public location page hero content, rendered from stored rich text HTML */
 .hero-rich-content p {
   margin: 0;
+  word-break: break-all;
 }
 
 .hero-rich-content p + p {
