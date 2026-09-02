@@ -52,7 +52,11 @@ export function RegisterSection() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setErrors({ name: data.error || 'Registration failed. Please try again.' });
+        if (data.field === 'phone') {
+          setErrors({ phone: data.error || 'Registration failed. Please try again.' });
+        } else {
+          setErrors({ name: data.error || 'Registration failed. Please try again.' });
+        }
         setStep('form');
         return;
       }

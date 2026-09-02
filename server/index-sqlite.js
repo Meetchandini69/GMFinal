@@ -14,6 +14,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
 mkdirSync(UPLOADS_DIR, { recursive: true });
 
+function normalizeMobile(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
   filename: (_req, file, cb) => {
@@ -103,18 +108,34 @@ function requireUser(req, res, next) {
 // Registration (landing page form)
 app.post('/api/register', async (req, res) => {
   const { name, mobile, city, age } = req.body;
-  if (!name || !mobile) return res.status(400).json({ error: 'Name and mobile are required' });
+  const normalizedMobile = normalizeMobile(mobile);
+  if (!name || !normalizedMobile) return res.status(400).json({ error: 'Name and mobile are required' });
+  if (!/^[6-9]\d{9}$/.test(normalizedMobile)) {
+    return res.status(400).json({ error: 'Enter a valid 10-digit mobile number', field: 'phone' });
+  }
 
   try {
+    const duplicateMobiles = [
+      ...db.prepare('SELECT mobile FROM submissions').all(),
+      ...db.prepare('SELECT mobile FROM users').all(),
+    ];
+    const exists = duplicateMobiles.some(row => normalizeMobile(row.mobile) === normalizedMobile);
+    if (exists) {
+      return res.status(409).json({
+        error: 'This mobile number is already registered. Please login or contact admin.',
+        field: 'phone',
+      });
+    }
+
     const stmt = db.prepare(
       'INSERT INTO submissions (name, mobile, city, age) VALUES (?, ?, ?, ?)'
     );
-    const result = stmt.run(name.trim(), mobile.trim(), city || '', age || '');
+    const result = stmt.run(name.trim(), normalizedMobile, city || '', age || '');
 
     const msg =
       `🔔 *New Gigolo Registration — Gigolomeet.in*\n\n` +
       `👤 Name:   ${name}\n` +
-      `📱 Mobile: +91 ${mobile}\n` +
+      `📱 Mobile: +91 ${normalizedMobile}\n` +
       `🏙 City:   ${city || 'N/A'}\n` +
       `🎂 Age:    ${age || 'N/A'}\n` +
       `🆔 Ref #${result.lastInsertRowid}`;
@@ -199,14 +220,45 @@ app.post('/api/user/upload-photo', requireUser, upload.single('photo'), (req, re
 // Available women (not yet swiped by this user)
 app.get('/api/user/women', requireUser, (req, res) => {
   const rows = db.prepare(`
+    WITH assigned AS (
+      SELECT woman_id FROM user_women_assignments WHERE user_id = ?
+    )
     SELECT w.* FROM women w
     WHERE w.is_active = 1
+      AND (
+        NOT EXISTS (SELECT 1 FROM assigned)
+        OR w.id IN (SELECT woman_id FROM assigned)
+      )
       AND w.id NOT IN (
         SELECT woman_id FROM swipe_actions WHERE user_id = ?
       )
     ORDER BY w.id
-  `).all(req.session.userId);
-  res.json(rows);
+  `).all(req.session.userId, req.session.userId);
+  const profile = db.prepare('SELECT subscription_status FROM profiles WHERE user_id = ?').get(req.session.userId);
+  res.json({ subscription_status: profile?.subscription_status || 'unpaid', women: rows });
+});
+
+app.post('/api/user/subscription-interest', requireUser, (req, res) => {
+  const user = db.prepare(`
+    SELECT u.id, u.mobile, p.full_name, p.city, p.state, p.joining_plan, p.subscription_status
+    FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE u.id = ?
+  `).get(req.session.userId);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  sendTelegram(
+    `*Subscription Payment Interest*\n\n` +
+    `User ID: ${user.id}\n` +
+    `Name: ${user.full_name || 'N/A'}\n` +
+    `Mobile: +91 ${user.mobile}\n` +
+    `City: ${[user.city, user.state].filter(Boolean).join(', ') || 'N/A'}\n` +
+    `Joining Plan: ${user.joining_plan || 'N/A'}\n` +
+    `Current Subscription: ${user.subscription_status || 'unpaid'}\n\n` +
+    `User clicked Pay Subscription from Available Women.`
+  );
+
+  res.json({ ok: true, message: 'Our admin will contact you on Telegram to initiate the payment process.' });
 });
 
 // Record a swipe
@@ -309,6 +361,7 @@ app.get('/api/admin/submissions', requireAdmin, (req, res) => {
            u.id as user_id,
            u.is_active,
            p.member_status,
+           p.subscription_status,
            p.profile_step
     FROM submissions s
     LEFT JOIN users u ON u.submission_id = s.id
@@ -355,6 +408,74 @@ app.post('/api/admin/set-credentials', requireAdmin, async (req, res) => {
 app.post('/api/admin/update-status', requireAdmin, (req, res) => {
   const { submission_id, status } = req.body;
   db.prepare('UPDATE submissions SET status = ? WHERE id = ?').run(status, submission_id);
+  res.json({ ok: true });
+});
+
+app.post('/api/admin/subscription-status', requireAdmin, (req, res) => {
+  const { user_id, subscription_status } = req.body;
+  if (!Number.isInteger(Number(user_id)) || !['paid', 'unpaid'].includes(subscription_status)) {
+    return res.status(400).json({ error: 'user_id and subscription_status are required' });
+  }
+
+  db.prepare("UPDATE profiles SET subscription_status = ?, updated_at = datetime('now') WHERE user_id = ?").run(subscription_status, Number(user_id));
+  if (subscription_status === 'paid') {
+    db.prepare('DELETE FROM swipe_actions WHERE user_id = ?').run(Number(user_id));
+  }
+  const user = db.prepare(`
+    SELECT u.mobile, p.full_name, p.city, p.joining_plan
+    FROM users u
+    LEFT JOIN profiles p ON p.user_id = u.id
+    WHERE u.id = ?
+  `).get(Number(user_id));
+  if (user) {
+    sendTelegram(
+      `*Subscription ${subscription_status === 'paid' ? 'Payment Done' : 'Marked Unpaid'}*\n\n` +
+      `Name: ${user.full_name || 'N/A'}\n` +
+      `Mobile: +91 ${user.mobile}\n` +
+      `City: ${user.city || 'N/A'}\n` +
+      `Plan: ${user.joining_plan || 'N/A'}`
+    );
+  }
+
+  res.json({ ok: true });
+});
+
+app.get('/api/admin/users/:userId/women-assignments', requireAdmin, (req, res) => {
+  const userId = Number(req.params.userId);
+  if (!Number.isInteger(userId)) return res.status(400).json({ error: 'Invalid user ID' });
+
+  const rows = db.prepare(`
+    SELECT w.*
+    FROM user_women_assignments uwa
+    JOIN women w ON w.id = uwa.woman_id
+    WHERE uwa.user_id = ?
+    ORDER BY uwa.created_at DESC
+  `).all(userId);
+  res.json(rows);
+});
+
+app.post('/api/admin/user-women-assignments', requireAdmin, (req, res) => {
+  const { user_id, woman_id } = req.body;
+  if (!Number.isInteger(Number(user_id)) || !Number.isInteger(Number(woman_id))) {
+    return res.status(400).json({ error: 'user_id and woman_id are required' });
+  }
+
+  db.prepare(`
+    INSERT OR IGNORE INTO user_women_assignments (user_id, woman_id)
+    VALUES (?, ?)
+  `).run(Number(user_id), Number(woman_id));
+  db.prepare('DELETE FROM swipe_actions WHERE user_id = ? AND woman_id = ?').run(Number(user_id), Number(woman_id));
+  res.json({ ok: true });
+});
+
+app.delete('/api/admin/users/:userId/women-assignments/:womanId', requireAdmin, (req, res) => {
+  const userId = Number(req.params.userId);
+  const womanId = Number(req.params.womanId);
+  if (!Number.isInteger(userId) || !Number.isInteger(womanId)) {
+    return res.status(400).json({ error: 'Invalid assignment' });
+  }
+
+  db.prepare('DELETE FROM user_women_assignments WHERE user_id = ? AND woman_id = ?').run(userId, womanId);
   res.json({ ok: true });
 });
 

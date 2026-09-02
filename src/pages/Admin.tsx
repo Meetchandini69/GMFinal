@@ -4,7 +4,7 @@ import {
   Crown, LogOut, Users, CheckCircle, Clock, XCircle,
   Key, ChevronDown, ChevronUp, UserCheck, AlertCircle,
   ImagePlus, Pencil, Trash2, ToggleLeft, ToggleRight, Plus,
-  Heart, X, Save, Copy, ExternalLink, Globe, FileText, LayoutTemplate,
+  Heart, X, Save, Copy, ExternalLink, Globe, FileText, LayoutTemplate, CreditCard,
 } from 'lucide-react';
 import { apiFetch, getImageUrl } from '@/lib/api';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ type Submission = {
   user_id?: number;
   is_active?: boolean | number;
   member_status?: string;
+  subscription_status?: string;
   profile_step?: number;
 };
 
@@ -46,6 +47,7 @@ type Profile = {
   joining_plan?: string;
   photo_url?: string;
   member_status?: string;
+  subscription_status?: string;
   submitted_at?: string;
 };
 
@@ -60,6 +62,8 @@ type Woman = {
   is_active: boolean;
   created_at: string;
 };
+
+type AssignedWoman = Woman;
 
 type WomanForm = {
   name: string;
@@ -433,6 +437,9 @@ export default function Admin() {
   const [credMsg, setCredMsg] = useState('');
   const [profileDetail, setProfileDetail] = useState<Profile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [assignedWomen, setAssignedWomen] = useState<AssignedWoman[]>([]);
+  const [assignWomanId, setAssignWomanId] = useState('');
+  const [assigningWoman, setAssigningWoman] = useState(false);
   const [filter, setFilter] = useState<SubmissionFilter>('all');
   const [deleteSubmissionConfirm, setDeleteSubmissionConfirm] = useState<Submission | null>(null);
   const [userActionLoading, setUserActionLoading] = useState<number | null>(null);
@@ -488,13 +495,21 @@ export default function Admin() {
   const loadProfile = async (userId: number) => {
     setProfileLoading(true);
     setProfileDetail(null);
+    setAssignedWomen([]);
+    setAssignWomanId('');
     try {
       const res = await apiFetch(`/api/admin/profile/${userId}`);
       if (!res.ok) return;
       setProfileDetail(await res.json());
+      await Promise.all([loadAssignedWomen(userId), women.length ? Promise.resolve() : loadWomen()]);
     } finally {
       setProfileLoading(false);
     }
+  };
+
+  const loadAssignedWomen = async (userId: number) => {
+    const res = await apiFetch(`/api/admin/users/${userId}/women-assignments`, { credentials: 'include' });
+    if (res.ok) setAssignedWomen(await res.json());
   };
 
   const handleSetCredentials = async () => {
@@ -529,6 +544,47 @@ export default function Admin() {
       credentials: 'include',
     });
     loadSubmissions();
+  };
+
+  const handleSubscriptionStatus = async (userId: number, subscriptionStatus: 'paid' | 'unpaid') => {
+    await apiFetch('/api/admin/subscription-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ user_id: userId, subscription_status: subscriptionStatus }),
+      credentials: 'include',
+    });
+    await loadSubmissions();
+    if (subscriptionStatus === 'paid') {
+      setAssignedWomen([]);
+    }
+    if (expanded) loadProfile(userId);
+  };
+
+  const handleAssignWoman = async (userId: number) => {
+    if (!assignWomanId) return;
+    setAssigningWoman(true);
+    try {
+      const res = await apiFetch('/api/admin/user-women-assignments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId, woman_id: Number(assignWomanId) }),
+        credentials: 'include',
+      });
+      if (res.ok) {
+        setAssignWomanId('');
+        await loadAssignedWomen(userId);
+      }
+    } finally {
+      setAssigningWoman(false);
+    }
+  };
+
+  const handleUnassignWoman = async (userId: number, womanId: number) => {
+    const res = await apiFetch(`/api/admin/users/${userId}/women-assignments/${womanId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    });
+    if (res.ok) loadAssignedWomen(userId);
   };
 
   const handleToggleUser = async (submission: Submission) => {
@@ -862,6 +918,11 @@ export default function Admin() {
                           {sub.member_status === 'pending_review' && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full border bg-yellow-400/10 text-yellow-400 border-yellow-400/30 font-medium">awaiting review</span>
                           )}
+                          {sub.member_status === 'active' && (
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full border font-medium ${sub.subscription_status === 'paid' ? 'bg-green-400/10 text-green-400 border-green-400/30' : 'bg-orange-400/10 text-orange-400 border-orange-400/30'}`}>
+                              {sub.subscription_status === 'paid' ? 'subscription paid' : 'payment pending'}
+                            </span>
+                          )}
                         </div>
                         <p className="text-muted-foreground text-xs mt-0.5">
                           +91 {sub.mobile} · {sub.city} · {sub.age} · #{sub.id} · {new Date(sub.created_at).toLocaleDateString('en-IN')}
@@ -943,7 +1004,17 @@ export default function Admin() {
                                 </div>
                               )}
                               {sub.member_status === 'active' && (
-                                <span className="text-green-400 text-xs bg-green-400/10 border border-green-400/30 px-2 py-1 rounded-full">✅ Approved & Live</span>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-green-400 text-xs bg-green-400/10 border border-green-400/30 px-2 py-1 rounded-full">Approved & Live</span>
+                                  <Button
+                                    size="sm"
+                                    className={`text-xs h-7 ${profileDetail.subscription_status === 'paid' ? 'bg-orange-500 text-white' : 'bg-primary text-black'}`}
+                                    onClick={() => handleSubscriptionStatus(sub.user_id!, profileDetail.subscription_status === 'paid' ? 'unpaid' : 'paid')}
+                                  >
+                                    <CreditCard className="w-3 h-3 mr-1" />
+                                    {profileDetail.subscription_status === 'paid' ? 'Mark Unpaid' : 'Payment Done'}
+                                  </Button>
+                                </div>
                               )}
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
@@ -962,6 +1033,7 @@ export default function Admin() {
                                 ['Email', profileDetail.email],
                                 ['Alt Mobile', profileDetail.alt_mobile],
                                 ['Joining Plan', profileDetail.joining_plan],
+                                ['Subscription', profileDetail.subscription_status === 'paid' ? 'Paid' : 'Unpaid'],
                               ].filter(([, v]) => v).map(([k, v]) => (
                                 <div key={k as string}>
                                   <p className="text-muted-foreground text-xs">{k}</p>
@@ -969,6 +1041,58 @@ export default function Admin() {
                                 </div>
                               ))}
                             </div>
+                            {sub.member_status === 'active' && (
+                              <div className="mt-4 rounded-xl border border-white/10 bg-card/60 p-4">
+                                <div className="flex flex-col sm:flex-row sm:items-end gap-3">
+                                  <div className="flex-1">
+                                    <p className="text-white font-semibold text-sm mb-1">Assign Women Profiles</p>
+                                    <p className="text-muted-foreground text-xs mb-2">
+                                      Once assigned, this user sees only assigned profiles. Adding a profile also makes it swipeable again for that user.
+                                    </p>
+                                    <select
+                                      value={assignWomanId}
+                                      onChange={e => setAssignWomanId(e.target.value)}
+                                      className="w-full h-9 rounded-md bg-background border border-white/10 px-3 text-sm text-white"
+                                    >
+                                      <option value="">Select profile to assign</option>
+                                      {women
+                                        .filter(w => !assignedWomen.some(assigned => assigned.id === w.id))
+                                        .map(w => (
+                                          <option key={w.id} value={w.id}>
+                                            {w.name}{w.age ? `, ${w.age}` : ''} - {[w.city, w.state].filter(Boolean).join(', ') || 'No location'}
+                                          </option>
+                                        ))}
+                                    </select>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    className="bg-primary text-black font-bold"
+                                    onClick={() => handleAssignWoman(sub.user_id!)}
+                                    disabled={!assignWomanId || assigningWoman}
+                                  >
+                                    <Plus className="w-3.5 h-3.5 mr-1" />
+                                    {assigningWoman ? 'Adding...' : 'Add Profile'}
+                                  </Button>
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                  {assignedWomen.length === 0 ? (
+                                    <span className="text-xs text-muted-foreground">No assigned profiles yet. User currently sees all active profiles.</span>
+                                  ) : assignedWomen.map(w => (
+                                    <span key={w.id} className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-background px-2.5 py-1 text-xs text-white">
+                                      {w.name}
+                                      <button
+                                        type="button"
+                                        className="text-muted-foreground hover:text-red-400"
+                                        onClick={() => handleUnassignWoman(sub.user_id!, w.id)}
+                                        title="Remove assignment"
+                                      >
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                             {profileDetail.more_info && (
                               <div className="mt-3">
                                 <p className="text-muted-foreground text-xs">More Info</p>

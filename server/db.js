@@ -57,6 +57,7 @@ await pool.query(`
     joining_plan    TEXT,
     date_of_paying  TEXT,
     payment_mode    TEXT,
+    subscription_status TEXT DEFAULT 'unpaid',
     photo_url       TEXT,
     member_status   TEXT DEFAULT 'inactive',
     profile_step    INTEGER DEFAULT 0,
@@ -95,12 +96,21 @@ await pool.query(`
   );
 
   ALTER TABLE location_pages ADD COLUMN IF NOT EXISTS sections JSONB NOT NULL DEFAULT '{}'::jsonb;
+  ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'unpaid';
 
   CREATE TABLE IF NOT EXISTS swipe_actions (
     id         SERIAL PRIMARY KEY,
     user_id    INTEGER NOT NULL REFERENCES users(id),
     woman_id   INTEGER NOT NULL REFERENCES women(id),
     action     TEXT NOT NULL CHECK (action IN ('like', 'pass')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE (user_id, woman_id)
+  );
+
+  CREATE TABLE IF NOT EXISTS user_women_assignments (
+    id         SERIAL PRIMARY KEY,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    woman_id   INTEGER NOT NULL REFERENCES women(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE (user_id, woman_id)
   );

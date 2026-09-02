@@ -55,6 +55,7 @@ db.exec(`
     joining_plan    TEXT,
     date_of_paying  TEXT,
     payment_mode    TEXT,
+    subscription_status TEXT DEFAULT 'unpaid',
     photo_url       TEXT,
     member_status   TEXT DEFAULT 'inactive',
     profile_step    INTEGER DEFAULT 0,
@@ -83,7 +84,21 @@ db.exec(`
     created_at DATETIME DEFAULT (datetime('now')),
     UNIQUE(user_id, woman_id)
   );
+
+  CREATE TABLE IF NOT EXISTS user_women_assignments (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    woman_id   INTEGER NOT NULL REFERENCES women(id),
+    created_at DATETIME DEFAULT (datetime('now')),
+    UNIQUE(user_id, woman_id)
+  );
 `);
+
+try {
+  db.exec("ALTER TABLE profiles ADD COLUMN subscription_status TEXT DEFAULT 'unpaid'");
+} catch (err) {
+  if (!String(err?.message || '').includes('duplicate column')) throw err;
+}
 
 // ── Seed women profiles ────────────────────────────────────────────────────
 const count = db.prepare('SELECT COUNT(*) as n FROM women').get().n;

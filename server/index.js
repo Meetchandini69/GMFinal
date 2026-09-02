@@ -30,6 +30,11 @@ function escapeXml(value) {
   return String(value).replace(/[<>&'"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', "'": '&apos;', '"': '&quot;' }[c]));
 }
 
+function normalizeMobile(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  return digits.length > 10 ? digits.slice(-10) : digits;
+}
+
 // Regenerates public/sitemap.xml (and robots.txt) from the current database state.
 // Called at startup and after every admin create/update/delete of a location page,
 // so the sitemap always reflects what's actually published — no manual step needed.
@@ -172,19 +177,39 @@ function requireUser(req, res, next) {
 // Registration (landing page form)
 app.post('/api/register', async (req, res) => {
   const { name, mobile, city, age } = req.body;
-  if (!name || !mobile) return res.status(400).json({ error: 'Name and mobile are required' });
+  const normalizedMobile = normalizeMobile(mobile);
+  if (!name || !normalizedMobile) return res.status(400).json({ error: 'Name and mobile are required' });
+  if (!/^[6-9]\d{9}$/.test(normalizedMobile)) {
+    return res.status(400).json({ error: 'Enter a valid 10-digit mobile number', field: 'phone' });
+  }
 
   try {
+    const { rows: existing } = await pool.query(
+      `SELECT id FROM submissions
+       WHERE RIGHT(REGEXP_REPLACE(COALESCE(mobile, ''), '\\D', '', 'g'), 10) = $1
+       UNION
+       SELECT id FROM users
+       WHERE RIGHT(REGEXP_REPLACE(COALESCE(mobile, ''), '\\D', '', 'g'), 10) = $1
+       LIMIT 1`,
+      [normalizedMobile]
+    );
+    if (existing.length > 0) {
+      return res.status(409).json({
+        error: 'This mobile number is already registered. Please login or contact admin.',
+        field: 'phone',
+      });
+    }
+
     const result = await pool.query(
       'INSERT INTO submissions (name, mobile, city, age) VALUES ($1, $2, $3, $4) RETURNING id',
-      [name.trim(), mobile.trim(), city || '', age || '']
+      [name.trim(), normalizedMobile, city || '', age || '']
     );
     const newId = result.rows[0].id;
 
     const msg =
       `🔔 *New Gigolo Registration — Gigolomeet.in*\n\n` +
       `👤 Name:   ${name}\n` +
-      `📱 Mobile: +91 ${mobile}\n` +
+      `📱 Mobile: +91 ${normalizedMobile}\n` +
       `🏙 City:   ${city || 'N/A'}\n` +
       `🎂 Age:    ${age || 'N/A'}\n` +
       `🆔 Ref #${newId}`;
@@ -343,16 +368,59 @@ app.post('/api/user/upload-photo', requireUser, upload.single('photo'), async (r
 // Available women (not yet swiped by this user)
 app.get('/api/user/women', requireUser, async (req, res) => {
   try {
+    const { rows: profileRows } = await pool.query(
+      'SELECT subscription_status FROM profiles WHERE user_id = $1',
+      [req.session.userId]
+    );
+    const subscriptionStatus = profileRows[0]?.subscription_status || 'unpaid';
+
     const { rows } = await pool.query(
-      `SELECT w.* FROM women w
+      `WITH assigned AS (
+         SELECT woman_id FROM user_women_assignments WHERE user_id = $1
+       )
+       SELECT w.* FROM women w
        WHERE w.is_active = TRUE
+         AND (
+           NOT EXISTS (SELECT 1 FROM assigned)
+           OR w.id IN (SELECT woman_id FROM assigned)
+         )
          AND w.id NOT IN (
            SELECT woman_id FROM swipe_actions WHERE user_id = $1
          )
        ORDER BY w.id`,
       [req.session.userId]
     );
-    res.json(rows);
+    res.json({ subscription_status: subscriptionStatus, women: rows });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/user/subscription-interest', requireUser, async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT u.id, u.mobile, p.full_name, p.city, p.state, p.joining_plan, p.subscription_status
+       FROM users u
+       LEFT JOIN profiles p ON p.user_id = u.id
+       WHERE u.id = $1`,
+      [req.session.userId]
+    );
+    const user = rows[0];
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    sendTelegram(
+      `*Subscription Payment Interest*\n\n` +
+      `User ID: ${user.id}\n` +
+      `Name: ${user.full_name || 'N/A'}\n` +
+      `Mobile: +91 ${user.mobile}\n` +
+      `City: ${[user.city, user.state].filter(Boolean).join(', ') || 'N/A'}\n` +
+      `Joining Plan: ${user.joining_plan || 'N/A'}\n` +
+      `Current Subscription: ${user.subscription_status || 'unpaid'}\n\n` +
+      `User clicked Pay Subscription from Available Women.`
+    );
+
+    res.json({ ok: true, message: 'Our admin will contact you on Telegram to initiate the payment process.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -499,6 +567,7 @@ app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
               u.id as user_id,
               u.is_active,
               p.member_status,
+              p.subscription_status,
               p.profile_step
        FROM submissions s
        LEFT JOIN users u ON u.submission_id = s.id
@@ -580,6 +649,109 @@ app.post('/api/admin/update-status', requireAdmin, async (req, res) => {
     await pool.query(
       'UPDATE submissions SET status = $1 WHERE id = $2',
       [status, submission_id]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/admin/subscription-status', requireAdmin, async (req, res) => {
+  const { user_id, subscription_status } = req.body;
+  if (!Number.isInteger(Number(user_id)) || !['paid', 'unpaid'].includes(subscription_status)) {
+    return res.status(400).json({ error: 'user_id and subscription_status are required' });
+  }
+
+  try {
+    await pool.query(
+      'UPDATE profiles SET subscription_status = $1, updated_at = NOW() WHERE user_id = $2',
+      [subscription_status, Number(user_id)]
+    );
+    if (subscription_status === 'paid') {
+      await pool.query('DELETE FROM swipe_actions WHERE user_id = $1', [Number(user_id)]);
+    }
+
+    const { rows } = await pool.query(
+      `SELECT u.mobile, p.full_name, p.city, p.joining_plan
+       FROM users u
+       LEFT JOIN profiles p ON p.user_id = u.id
+       WHERE u.id = $1`,
+      [Number(user_id)]
+    );
+    const user = rows[0];
+    if (user) {
+      sendTelegram(
+        `*Subscription ${subscription_status === 'paid' ? 'Payment Done' : 'Marked Unpaid'}*\n\n` +
+        `Name: ${user.full_name || 'N/A'}\n` +
+        `Mobile: +91 ${user.mobile}\n` +
+        `City: ${user.city || 'N/A'}\n` +
+        `Plan: ${user.joining_plan || 'N/A'}`
+      );
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.get('/api/admin/users/:userId/women-assignments', requireAdmin, async (req, res) => {
+  const userId = Number(req.params.userId);
+  if (!Number.isInteger(userId)) return res.status(400).json({ error: 'Invalid user ID' });
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT w.*
+       FROM user_women_assignments uwa
+       JOIN women w ON w.id = uwa.woman_id
+       WHERE uwa.user_id = $1
+       ORDER BY uwa.created_at DESC`,
+      [userId]
+    );
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/admin/user-women-assignments', requireAdmin, async (req, res) => {
+  const { user_id, woman_id } = req.body;
+  if (!Number.isInteger(Number(user_id)) || !Number.isInteger(Number(woman_id))) {
+    return res.status(400).json({ error: 'user_id and woman_id are required' });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO user_women_assignments (user_id, woman_id)
+       VALUES ($1, $2)
+       ON CONFLICT (user_id, woman_id) DO NOTHING`,
+      [Number(user_id), Number(woman_id)]
+    );
+    await pool.query(
+      'DELETE FROM swipe_actions WHERE user_id = $1 AND woman_id = $2',
+      [Number(user_id), Number(woman_id)]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/admin/users/:userId/women-assignments/:womanId', requireAdmin, async (req, res) => {
+  const userId = Number(req.params.userId);
+  const womanId = Number(req.params.womanId);
+  if (!Number.isInteger(userId) || !Number.isInteger(womanId)) {
+    return res.status(400).json({ error: 'Invalid assignment' });
+  }
+
+  try {
+    await pool.query(
+      'DELETE FROM user_women_assignments WHERE user_id = $1 AND woman_id = $2',
+      [userId, womanId]
     );
     res.json({ ok: true });
   } catch (err) {
@@ -867,6 +1039,7 @@ app.delete('/api/admin/submissions/:submissionId', requireAdmin, async (req, res
 
     for (const user of users) {
       await client.query('DELETE FROM swipe_actions WHERE user_id = $1', [user.id]);
+      await client.query('DELETE FROM user_women_assignments WHERE user_id = $1', [user.id]);
       await client.query('DELETE FROM profiles WHERE user_id = $1', [user.id]);
       await client.query('DELETE FROM users WHERE id = $1', [user.id]);
     }
@@ -996,6 +1169,7 @@ app.put('/api/admin/women/:id', requireAdmin, async (req, res) => {
 app.delete('/api/admin/women/:id', requireAdmin, async (req, res) => {
   try {
     await pool.query('DELETE FROM swipe_actions WHERE woman_id = $1', [req.params.id]);
+    await pool.query('DELETE FROM user_women_assignments WHERE woman_id = $1', [req.params.id]);
     await pool.query('DELETE FROM women WHERE id = $1', [req.params.id]);
     res.json({ ok: true });
   } catch (err) {

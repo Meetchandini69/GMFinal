@@ -37,6 +37,7 @@ type Profile = {
   joining_plan?: string;
   photo_url?: string;
   member_status?: string;
+  subscription_status?: string;
   profile_step?: number;
   submitted_at?: string;
 };
@@ -377,6 +378,7 @@ export default function Dashboard() {
                     <tbody className="divide-y divide-white/5">
                       {[
                         ['Joining Fees', getJoiningPlanFee(profile.joining_plan)],
+                        ['Subscription Status', profile.subscription_status === 'paid' ? 'Paid - photos and chat unlocked' : 'Monthly subscription pending'],
                         ['Telegram', 'Ask for QR Code/UPI ID'],
                       ].map(([k, v]) => (
                         <tr key={k}>

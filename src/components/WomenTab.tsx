@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { MapPin, Heart, X, Clock, Check, RotateCcw, Frown } from 'lucide-react';
+import { MapPin, Heart, X, Clock, Check, RotateCcw, Frown, Lock, CreditCard } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 
@@ -36,11 +36,13 @@ function SwipeCard({
   isTop,
   stackIndex,
   onSwipe,
+  locked,
 }: {
   woman: Woman;
   isTop: boolean;
   stackIndex: number;
   onSwipe: (id: number, action: 'like' | 'pass') => void;
+  locked: boolean;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const startX = useRef(0);
@@ -150,9 +152,16 @@ function SwipeCard({
         <img
           src={woman.photo_url}
           alt={woman.name}
-          className="w-full h-full object-cover object-top pointer-events-none"
+          className={`w-full h-full object-cover object-top pointer-events-none transition-all ${locked ? 'blur-[6px] scale-[1.02]' : ''}`}
           draggable={false}
         />
+        {locked && (
+          <div className="absolute inset-0 bg-black/10 pointer-events-none">
+            <div className="absolute top-5 left-1/2 -translate-x-1/2 h-12 w-12 rounded-full bg-black/55 border border-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+          </div>
+        )}
 
         {/* Swipe overlays */}
         <div className="swipe-yes absolute top-8 left-6 opacity-0 transition-none rotate-[-20deg]">
@@ -186,6 +195,9 @@ function SwipeCard({
 export default function WomenTab() {
   const [women, setWomen] = useState<Woman[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [subscriptionStatus, setSubscriptionStatus] = useState('unpaid');
+  const [interestMsg, setInterestMsg] = useState('');
+  const [sendingInterest, setSendingInterest] = useState(false);
   const [subTab, setSubTab] = useState<'swipe' | 'history'>('swipe');
   const [historyFilter, setHistoryFilter] = useState<'all' | 'like' | 'pass'>('all');
   const [loading, setLoading] = useState(true);
@@ -201,7 +213,9 @@ export default function WomenTab() {
     ]);
     if (wRes.ok) {
       const data = await wRes.json();
-      const mapped = data.map((w: any, i: number) => ({
+      const rows = Array.isArray(data) ? data : data.women || [];
+      setSubscriptionStatus(data.subscription_status || 'unpaid');
+      const mapped = rows.map((w: any, i: number) => ({
         ...w,
         photo_url: (w.photo_url && w.photo_url.startsWith('/models/')) ? w.photo_url : MODEL_PHOTOS[i % MODEL_PHOTOS.length],
       }));
@@ -216,6 +230,25 @@ export default function WomenTab() {
       setHistory(mappedH);
     }
     setLoading(false);
+  };
+
+  const hasPaid = subscriptionStatus === 'paid';
+
+  const handleSubscriptionInterest = async () => {
+    setSendingInterest(true);
+    setInterestMsg('');
+    try {
+      const res = await apiFetch('/api/user/subscription-interest', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      setInterestMsg(res.ok
+        ? 'Our admin will contact you on Telegram to initiate the payment process.'
+        : data.error || 'Unable to send payment request. Please try again.');
+    } finally {
+      setSendingInterest(false);
+    }
   };
 
   const handleSwipe = async (womanId: number, action: 'like' | 'pass') => {
@@ -278,6 +311,34 @@ export default function WomenTab() {
       {/* ── Swipe Tab ──────────────────────────────────────────────────────── */}
       {subTab === 'swipe' && (
         <div>
+          {!hasPaid && women.length > 0 && (
+            <div className="mb-4 rounded-xl border border-primary/25 bg-primary/10 p-4">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div className="flex-1">
+                  <p className="text-white font-semibold text-sm flex items-center gap-2">
+                    <Lock className="w-4 h-4 text-primary" />
+                    Subscription required
+                  </p>
+                  <p className="text-muted-foreground text-sm mt-1">
+                    These are available women seeking men to date and meet. You can browse and swipe now, but photos and chat unlock only after the monthly subscription is paid.
+                  </p>
+                  {interestMsg && (
+                    <p className={`text-xs mt-2 ${interestMsg.startsWith('Our admin') ? 'text-green-400' : 'text-red-400'}`}>
+                      {interestMsg}
+                    </p>
+                  )}
+                </div>
+                <Button
+                  className="bg-primary text-black font-bold shrink-0"
+                  onClick={handleSubscriptionInterest}
+                  disabled={sendingInterest}
+                >
+                  <CreditCard className="w-4 h-4 mr-2" />
+                  {sendingInterest ? 'Sending...' : 'Pay Subscription'}
+                </Button>
+              </div>
+            </div>
+          )}
           {women.length === 0 ? (
             <div className="bg-card border border-white/10 rounded-2xl p-12 text-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-4">
@@ -303,6 +364,7 @@ export default function WomenTab() {
                       isTop={isTop}
                       stackIndex={stackIndex}
                       onSwipe={handleSwipe}
+                      locked={!hasPaid}
                     />
                   );
                 })}
@@ -373,7 +435,14 @@ export default function WomenTab() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {filteredHistory.map((w, idx) => (
                 <div key={`${w.id}-${idx}`} className="bg-card border border-white/10 rounded-xl overflow-hidden flex gap-3 p-3">
-                  <img src={w.photo_url} alt={w.name} className="w-16 h-16 rounded-xl object-cover shrink-0" />
+                  <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                    <img src={w.photo_url} alt={w.name} className={`w-full h-full object-cover ${hasPaid ? '' : 'blur-[6px] scale-[1.08]'}`} />
+                    {!hasPaid && (
+                      <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                        <Lock className="w-4 h-4 text-primary" />
+                      </div>
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
                       <div>
