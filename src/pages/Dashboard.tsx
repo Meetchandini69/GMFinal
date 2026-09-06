@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import {
-  Crown, CheckCircle, User, FileText, LogOut,
+  Crown, Gift, Sparkles, CheckCircle, User, FileText, LogOut,
   Edit2, Save, Phone, Mail, MapPin,
   Calendar, Ruler, Weight, AlertCircle, Clock, Heart
 } from 'lucide-react';
@@ -322,6 +322,40 @@ export default function Dashboard() {
               <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-semibold ${statusColor[profile.member_status || 'inactive']}`}>
                 {profile.member_status === 'active' ? '✅' : profile.member_status === 'pending_review' ? '⏳' : '⚠️'}
                 {statusLabel[profile.member_status || 'inactive']}
+              </div>
+              <div className="mt-5 space-y-4 text-sm leading-relaxed text-muted-foreground">
+                <section className="rounded-xl border border-primary/20 border-l-4 border-l-primary bg-primary/5 p-4 sm:p-5">
+                  <h4 className="mb-2 flex items-center gap-2 font-semibold text-white"><FileText aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />Profile Submission is Mandatory</h4>
+                  <p>To access any of the options below, you must first register and submit your profile. Your profile submission is required for both Free Registration and the Premium Plan.</p>
+                </section>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <section className="membership-option membership-free">
+                    <div className="membership-icon"><User aria-hidden="true" className="h-6 w-6" /></div>
+                    <span className="membership-eyebrow">Option 1 · Get discovered</span>
+                    <h4 className="mb-3 text-xl font-bold text-white">Free Registration</h4>
+                    <p>Register and submit your profile for free. If a woman likes your profile, she can view it and contact you directly through message or phone.</p>
+                  </section>
+                  <section className="membership-option membership-premium">
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                      <div className="membership-icon !mb-0"><Crown aria-hidden="true" className="h-6 w-6" /></div>
+                      <span className="membership-badge"><Sparkles aria-hidden="true" className="h-3.5 w-3.5" /> More ways to connect</span>
+                    </div>
+                    <span className="membership-eyebrow">Option 2 · Monthly access</span>
+                    <h4 className="mb-3 text-xl font-bold text-amber-100">Premium Plan</h4>
+                    <p>You can choose our monthly Premium Plan for additional access and features, including the ability to view and directly message available profiles.</p>
+                    <p className="mt-4 rounded-lg border border-amber-300/15 bg-black/20 p-3"><strong className="block mb-1 text-amber-100">Joining the Premium Plan is completely optional.</strong> There is no pressure or obligation to upgrade. You can choose this plan only if you want the additional features.</p>
+                  </section>
+                </div>
+                <section className="membership-option membership-bonus">
+                  <div className="flex items-start gap-4">
+                    <div className="membership-icon shrink-0 hidden sm:flex"><Gift aria-hidden="true" className="h-6 w-6" /></div>
+                    <div>
+                  <span className="membership-badge mb-3"><Gift aria-hidden="true" className="h-3.5 w-3.5" /> Added bonus</span>
+                  <h4 className="mb-2 text-lg font-bold text-teal-100">Free Registration on Partner Platforms</h4>
+                  <p>We are also connected with partner platforms where you may receive a <strong className="text-white">free registration</strong>, helping increase your profile's visibility and reach more people who are looking to connect.</p>
+                    </div>
+                  </div>
+                </section>
               </div>
             </div>
 

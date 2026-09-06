@@ -141,3 +141,88 @@ body {
   color: var(--color-primary);
   text-decoration: underline;
 }
+
+/* Membership cards: scoped accents and gentle decorative motion. */
+.membership-option {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 16px;
+  padding: clamp(18px, 3vw, 24px);
+  color: #c9c9cc;
+  background: #111113;
+}
+.membership-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin-bottom: 16px;
+  border-radius: 14px;
+  background: rgb(255 255 255 / 6%);
+  color: #d4d4d8;
+  border: 1px solid rgb(255 255 255 / 12%);
+}
+.membership-eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.membership-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid rgb(251 191 36 / 25%);
+  border-radius: 999px;
+  background: rgb(251 191 36 / 10%);
+  color: #fcd977;
+  font-size: 11px;
+  font-weight: 600;
+}
+.membership-premium {
+  border-color: rgb(251 191 36 / 45%);
+  background: linear-gradient(135deg, #302617, #19160f 65%, #221c11);
+  animation: membership-gold-glow 5s ease-in-out infinite;
+}
+.membership-premium .membership-icon {
+  color: #fcd977;
+  background: rgb(251 191 36 / 13%);
+  border-color: rgb(251 191 36 / 30%);
+}
+.membership-premium .membership-eyebrow { color: #e4be70; }
+.membership-bonus {
+  border-color: rgb(45 212 191 / 30%);
+  background: linear-gradient(115deg, #102824, #101c1b 70%);
+}
+.membership-bonus .membership-icon,
+.membership-bonus .membership-badge {
+  color: #99f6e4;
+  border-color: rgb(45 212 191 / 25%);
+  background: rgb(45 212 191 / 10%);
+}
+.membership-bonus::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgb(45 212 191 / 16%), transparent 65%);
+  animation: membership-bonus-glow 6s ease-in-out infinite;
+}
+@keyframes membership-gold-glow {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(251 191 36 / 4%), 0 4px 20px rgb(251 191 36 / 3%); }
+  50% { box-shadow: 0 0 0 1px rgb(251 191 36 / 18%), 0 4px 24px rgb(251 191 36 / 12%); }
+}
+@keyframes membership-bonus-glow {
+  0%, 100% { opacity: .3; }
+  50% { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .membership-premium, .membership-bonus::before { animation: none; }
+}
