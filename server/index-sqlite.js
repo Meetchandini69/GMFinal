@@ -1,9 +1,11 @@
+import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import { registerSubscriptionDetails } from './subscription-details.js';
 import { mkdirSync } from 'fs';
 import path from 'path';
 import { dirname } from 'path';
@@ -95,6 +97,32 @@ function requireAdmin(req, res, next) {
   if (req.session?.isAdmin) return next();
   return res.status(401).json({ error: 'Unauthorized' });
 }
+
+async function initiatePayment(id) {
+  db.prepare('INSERT INTO payment_requests (user_id, initiated_at) VALUES (?, ?) ON CONFLICT (user_id) DO NOTHING').run(id, new Date().toISOString());
+}
+
+app.get('/api/admin/payment-requests', requireAdmin, async (_req, res) => {
+  try { res.json(db.prepare(`SELECT u.id AS user_id, u.mobile, p.full_name, p.joining_plan, COALESCE(p.subscription_status, 'unpaid') AS subscription_status, pr.initiated_at, CASE WHEN r.user_id IS NULL THEN 0 ELSE 1 END AS has_receipt FROM users u LEFT JOIN profiles p ON p.user_id = u.id LEFT JOIN payment_requests pr ON pr.user_id = u.id LEFT JOIN payment_receipts r ON r.user_id = u.id WHERE pr.user_id IS NOT NULL OR r.user_id IS NOT NULL ORDER BY pr.initiated_at DESC`).all()); }
+  catch { res.status(500).json({ error: 'Unable to load payment requests.' }); }
+});
+
+registerPaymentReceipts(app, {
+  onUploaded: async id => {
+    await initiatePayment(id);
+    const user = db.prepare('SELECT u.mobile, p.full_name, p.joining_plan FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.id = ?').get(id);
+    await sendTelegram('*Payment receipt submitted*\n\n' + 'User ID: ' + id + '\nName: ' + (user?.full_name || 'N/A') + '\nMobile: ' + (user?.mobile || 'N/A') + '\nPlan: ' + (user?.joining_plan || 'N/A') + '\nReview the receipt in Admin > Payment Initiated.');
+  },
+  requireAdmin, requireUser,
+  read: async id => db.prepare('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = ?').get(id),
+  save: async (id, type, image) => db.prepare('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES (?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET mime_type = excluded.mime_type, image_data = excluded.image_data').run(id, type, image),
+});
+
+registerSubscriptionDetails(app, {
+  requireAdmin, requireUser, upload,
+  read: async () => db.prepare('SELECT image_url, content FROM subscription_details WHERE id = 1').get(),
+  save: async (image, content) => db.prepare('INSERT INTO subscription_details (id, image_url, content) VALUES (1, ?, ?) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content').run(image, content),
+});
 
 function requireUser(req, res, next) {
   if (req.session?.userId) return next();
@@ -238,7 +266,7 @@ app.get('/api/user/women', requireUser, (req, res) => {
   res.json({ subscription_status: profile?.subscription_status || 'unpaid', women: rows });
 });
 
-app.post('/api/user/subscription-interest', requireUser, (req, res) => {
+app.post('/api/user/subscription-interest', requireUser, async (req, res) => {
   const user = db.prepare(`
     SELECT u.id, u.mobile, p.full_name, p.city, p.state, p.joining_plan, p.subscription_status
     FROM users u
@@ -247,8 +275,9 @@ app.post('/api/user/subscription-interest', requireUser, (req, res) => {
   `).get(req.session.userId);
   if (!user) return res.status(404).json({ error: 'User not found' });
 
+  await initiatePayment(user.id);
   sendTelegram(
-    `*Subscription Payment Interest*\n\n` +
+    `*Payment Initiated*\n\n` +
     `User ID: ${user.id}\n` +
     `Name: ${user.full_name || 'N/A'}\n` +
     `Mobile: +91 ${user.mobile}\n` +
@@ -258,7 +287,7 @@ app.post('/api/user/subscription-interest', requireUser, (req, res) => {
     `User clicked Pay Subscription from Available Women.`
   );
 
-  res.json({ ok: true, message: 'Our admin will contact you on Telegram to initiate the payment process.' });
+  res.json({ ok: true, message: 'Kindly follow the payment instructions below and attach a screenshot of your payment to proceed to the next level.' });
 });
 
 // Record a swipe
@@ -417,7 +446,8 @@ app.post('/api/admin/subscription-status', requireAdmin, (req, res) => {
     return res.status(400).json({ error: 'user_id and subscription_status are required' });
   }
 
-  db.prepare("UPDATE profiles SET subscription_status = ?, updated_at = datetime('now') WHERE user_id = ?").run(subscription_status, Number(user_id));
+  const updated = db.prepare("UPDATE profiles SET subscription_status = ?, updated_at = datetime('now') WHERE user_id = ?").run(subscription_status, Number(user_id));
+  if (!updated.changes) return res.status(404).json({ error: 'User profile not found.' });
   if (subscription_status === 'paid') {
     db.prepare('DELETE FROM swipe_actions WHERE user_id = ?').run(Number(user_id));
   }

@@ -1,3 +1,4 @@
+import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
 import express from 'express';
 import session from 'express-session';
@@ -5,6 +6,7 @@ import connectPgSimple from 'connect-pg-simple';   // <-- Add thiss
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import multer from 'multer';
+import { registerSubscriptionDetails } from './subscription-details.js';
 import sanitizeHtml from 'sanitize-html';
 import { mkdirSync } from 'fs';
 import path from 'path';
@@ -164,6 +166,32 @@ function requireAdmin(req, res, next) {
 
   return res.status(401).json({ error: "Unauthorized" });
 }
+
+async function initiatePayment(id) {
+  await pool.query('INSERT INTO payment_requests (user_id, initiated_at) VALUES ($1, $2) ON CONFLICT (user_id) DO NOTHING', [id, new Date().toISOString()]);
+}
+
+app.get('/api/admin/payment-requests', requireAdmin, async (_req, res) => {
+  try { res.json((await pool.query(`SELECT u.id AS user_id, u.mobile, p.full_name, p.joining_plan, COALESCE(p.subscription_status, 'unpaid') AS subscription_status, pr.initiated_at, CASE WHEN r.user_id IS NULL THEN 0 ELSE 1 END AS has_receipt FROM users u LEFT JOIN profiles p ON p.user_id = u.id LEFT JOIN payment_requests pr ON pr.user_id = u.id LEFT JOIN payment_receipts r ON r.user_id = u.id WHERE pr.user_id IS NOT NULL OR r.user_id IS NOT NULL ORDER BY pr.initiated_at DESC`)).rows); }
+  catch { res.status(500).json({ error: 'Unable to load payment requests.' }); }
+});
+
+registerPaymentReceipts(app, {
+  onUploaded: async id => {
+    await initiatePayment(id);
+    const user = (await pool.query('SELECT u.mobile, p.full_name, p.joining_plan FROM users u LEFT JOIN profiles p ON p.user_id = u.id WHERE u.id = $1', [id])).rows[0];
+    await sendTelegram('*Payment receipt submitted*\n\n' + 'User ID: ' + id + '\nName: ' + (user?.full_name || 'N/A') + '\nMobile: ' + (user?.mobile || 'N/A') + '\nPlan: ' + (user?.joining_plan || 'N/A') + '\nReview the receipt in Admin > Payment Initiated.');
+  },
+  requireAdmin, requireUser,
+  read: async id => (await pool.query('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = $1', [id])).rows[0],
+  save: async (id, type, image) => pool.query('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type, image_data = EXCLUDED.image_data', [id, type, image]),
+});
+
+registerSubscriptionDetails(app, {
+  requireAdmin, requireUser, upload,
+  read: async () => (await pool.query('SELECT image_url, content FROM subscription_details WHERE id = 1')).rows[0],
+  save: async (image, content) => pool.query('INSERT INTO subscription_details (id, image_url, content) VALUES (1, $1, $2) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content', [image, content]),
+});
 
 function requireUser(req, res, next) {
   if (req.session?.userId) return next();
@@ -409,8 +437,9 @@ app.post('/api/user/subscription-interest', requireUser, async (req, res) => {
     const user = rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    await initiatePayment(user.id);
     sendTelegram(
-      `*Subscription Payment Interest*\n\n` +
+      `*Payment Initiated*\n\n` +
       `User ID: ${user.id}\n` +
       `Name: ${user.full_name || 'N/A'}\n` +
       `Mobile: +91 ${user.mobile}\n` +
@@ -420,7 +449,7 @@ app.post('/api/user/subscription-interest', requireUser, async (req, res) => {
       `User clicked Pay Subscription from Available Women.`
     );
 
-    res.json({ ok: true, message: 'Our admin will contact you on Telegram to initiate the payment process.' });
+    res.json({ ok: true, message: 'Kindly follow the payment instructions below and attach a screenshot of your payment to proceed to the next level.' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
@@ -664,10 +693,11 @@ app.post('/api/admin/subscription-status', requireAdmin, async (req, res) => {
   }
 
   try {
-    await pool.query(
+    const updated = await pool.query(
       'UPDATE profiles SET subscription_status = $1, updated_at = NOW() WHERE user_id = $2',
       [subscription_status, Number(user_id)]
     );
+    if (!updated.rowCount) return res.status(404).json({ error: 'User profile not found.' });
     if (subscription_status === 'paid') {
       await pool.query('DELETE FROM swipe_actions WHERE user_id = $1', [Number(user_id)]);
     }

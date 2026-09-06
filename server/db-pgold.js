@@ -15,6 +15,12 @@ export const query = (text, params) => pool.query(text, params);
 
 // Create tables on startup
 await pool.query(`
+
+  CREATE TABLE IF NOT EXISTS subscription_details (
+    id INTEGER PRIMARY KEY CHECK (id = 1),
+    image_url TEXT NOT NULL DEFAULT '',
+    content TEXT NOT NULL DEFAULT ''
+  );
   CREATE TABLE IF NOT EXISTS submissions (
     id          SERIAL PRIMARY KEY,
     name        TEXT    NOT NULL,
@@ -94,5 +100,18 @@ await pool.query(`
 `);
 
 await pool.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS subscription_status TEXT DEFAULT 'unpaid'");
+
+
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS payment_requests (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    initiated_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS payment_receipts (
+    user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    mime_type TEXT NOT NULL,
+    image_data BYTEA NOT NULL
+  );
+`);
 
 export default { query, pool };

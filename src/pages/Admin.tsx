@@ -1,3 +1,5 @@
+import PaymentRequests, { type PaymentRequest } from '@/components/PaymentRequests';
+import PaymentReceipt from '@/components/PaymentReceipt';
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, Link } from 'wouter';
 import {
@@ -11,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { motion } from 'framer-motion';
+import SubscriptionDetailsEditor from '@/components/SubscriptionDetailsEditor';
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -74,7 +77,7 @@ type WomanForm = {
   photo_url: string;
 };
 
-type SubmissionFilter = 'all' | 'pending' | 'approved' | 'profile_pending' | 'profile_approved';
+type SubmissionFilter = 'all' | 'pending' | 'approved' | 'profile_pending' | 'profile_approved' | 'paid';
 
 type LocationStat = { label: string; value: string };
 
@@ -425,7 +428,27 @@ export default function Admin() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // top-level tab
-  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations'>('submissions');
+  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations' | 'subscription' | 'payments'>('submissions');
+
+  const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
+  const [paymentError, setPaymentError] = useState('');
+  const [paymentsLoading, setPaymentsLoading] = useState(true);
+  const loadPaymentRequests = async () => {
+    try {
+      const res = await apiFetch('/api/admin/payment-requests');
+      if (!res.ok) throw new Error();
+      setPaymentRequests(await res.json());
+      setPaymentError('');
+    } catch { setPaymentError('Unable to load payment requests. Please refresh.'); }
+    finally { setPaymentsLoading(false); }
+  };
+  useEffect(() => {
+    if (!authed) return;
+    void loadPaymentRequests();
+    const interval = window.setInterval(loadPaymentRequests, 15000);
+    window.addEventListener('focus', loadPaymentRequests);
+    return () => { window.clearInterval(interval); window.removeEventListener('focus', loadPaymentRequests); };
+  }, [authed]);
 
   // submissions state
   const [submissions, setSubmissions] = useState<Submission[]>([]);
@@ -640,6 +663,7 @@ export default function Admin() {
 
   const filtered = submissions.filter(s => {
     if (filter === 'all') return true;
+    if (filter === 'paid') return s.subscription_status === 'paid';
     if (filter === 'profile_pending') return s.member_status === 'pending_review';
     if (filter === 'profile_approved') return s.member_status === 'active';
     return s.status === filter;
@@ -807,7 +831,8 @@ export default function Admin() {
             <Button
               size="sm"
               variant="outline"
-              onClick={mainTab === 'submissions' ? loadSubmissions : mainTab === 'women' ? loadWomen : loadLocationPages}
+              onClick={mainTab === 'payments' ? loadPaymentRequests : mainTab === 'submissions' ? loadSubmissions : mainTab === 'women' ? loadWomen : loadLocationPages}
+              hidden={mainTab === 'subscription'}
             >
               Refresh
             </Button>
@@ -821,7 +846,17 @@ export default function Admin() {
       <div className="container mx-auto px-4 md:px-6 py-8 max-w-5xl">
 
         {/* ── Main tabs ── */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex flex-wrap gap-2 mb-8">
+          <button onClick={() => setMainTab('payments')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'payments' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}>
+            <CreditCard className="w-4 h-4" /> Payment Initiated
+            <span className="rounded-full px-2 bg-orange-500/20" aria-label="Pending payments">{paymentRequests.filter(p => p.subscription_status !== 'paid').length}</span>
+          </button>
+          <button
+            onClick={() => setMainTab('subscription')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'subscription' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
+          >
+            <CreditCard className="w-4 h-4" /> Subscription Details
+          </button>
           <button
             onClick={() => setMainTab('submissions')}
             className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'submissions' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
@@ -843,6 +878,11 @@ export default function Admin() {
         </div>
 
         {/* ══════════════ SUBMISSIONS TAB ══════════════ */}
+        {mainTab === 'subscription' && <SubscriptionDetailsEditor />}
+        {mainTab === 'payments' && <>
+          {paymentError && <p role="alert" className="text-red-400 mb-4">{paymentError}</p>}
+          {paymentsLoading ? <p className="text-muted-foreground">Loading payment requests...</p> : <PaymentRequests requests={paymentRequests} refresh={loadPaymentRequests} />}
+        </>}
         {mainTab === 'submissions' && (
           <>
             {/* Stats */}
@@ -871,10 +911,12 @@ export default function Admin() {
                 { value: 'approved' as const, label: 'Approved', count: submissions.filter(s => s.status === 'approved').length },
                 { value: 'profile_pending' as const, label: 'Profile Submitted for Approval', count: submissions.filter(s => s.member_status === 'pending_review').length },
                 { value: 'profile_approved' as const, label: 'Profile Submitted Approved', count: submissions.filter(s => s.member_status === 'active').length },
+                { value: 'paid' as const, label: 'Paid Profiles', count: submissions.filter(s => s.subscription_status === 'paid').length },
               ].map(({ value, label, count }) => (
                 <button
                   key={value}
                   onClick={() => setFilter(value)}
+                  aria-pressed={filter === value}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${filter === value ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}
                 >
                   {label} <span className="ml-1 opacity-70">{count}</span>
@@ -890,7 +932,7 @@ export default function Admin() {
             ) : filtered.length === 0 ? (
               <div className="text-center py-12 text-muted-foreground">
                 <Users className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                <p>No submissions yet</p>
+                <p>{filter === 'paid' ? 'No paid profiles yet' : 'No submissions yet'}</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -1017,6 +1059,7 @@ export default function Admin() {
                                 </div>
                               )}
                             </div>
+                            <PaymentReceipt key={sub.user_id} userId={sub.user_id!} />
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">
                               {[
                                 ['Full Name', profileDetail.full_name],

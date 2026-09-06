@@ -1,7 +1,9 @@
+import PaymentReceipt from '@/components/PaymentReceipt';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MapPin, Heart, X, Clock, Check, RotateCcw, Frown, Lock, CreditCard } from 'lucide-react';
-import { apiFetch } from '@/lib/api';
+import { apiFetch, getImageUrl } from '@/lib/api';
 import { Button } from '@/components/ui/button';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const MODEL_PHOTOS = [
   '/models/gigolo-girl-1.jpeg',
@@ -198,6 +200,11 @@ export default function WomenTab() {
   const [subscriptionStatus, setSubscriptionStatus] = useState('unpaid');
   const [interestMsg, setInterestMsg] = useState('');
   const [sendingInterest, setSendingInterest] = useState(false);
+  const [paymentAccordion, setPaymentAccordion] = useState('');
+  const [paymentRequested, setPaymentRequested] = useState(false);
+  const [paymentDetails, setPaymentDetails] = useState<{ image_url: string; content: string } | null>(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsError, setDetailsError] = useState('');
   const [subTab, setSubTab] = useState<'swipe' | 'history'>('swipe');
   const [historyFilter, setHistoryFilter] = useState<'all' | 'like' | 'pass'>('all');
   const [loading, setLoading] = useState(true);
@@ -205,8 +212,8 @@ export default function WomenTab() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const fetchData = async () => {
-    setLoading(true);
+  const fetchData = async (silent = false) => {
+    if (!silent) setLoading(true);
     const [wRes, hRes] = await Promise.all([
       apiFetch('/api/user/women', { credentials: 'include' }),
       apiFetch('/api/user/swipe-history', { credentials: 'include' }),
@@ -232,9 +239,34 @@ export default function WomenTab() {
     setLoading(false);
   };
 
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') void fetchData(true).catch(() => {}); };
+    const interval = window.setInterval(refresh, 15000);
+    window.addEventListener('focus', refresh);
+    return () => { window.clearInterval(interval); window.removeEventListener('focus', refresh); };
+  }, []);
+
   const hasPaid = subscriptionStatus === 'paid';
 
+  const loadPaymentDetails = async () => {
+    setDetailsLoading(true);
+    setDetailsError('');
+    setPaymentDetails(null);
+    try {
+      const res = await apiFetch('/api/user/subscription-details');
+      if (!res.ok) throw new Error('Unable to load payment details. Please retry.');
+      setPaymentDetails(await res.json());
+    } catch {
+      setDetailsError('Unable to load payment details. Please retry.');
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
   const handleSubscriptionInterest = async () => {
+    setPaymentRequested(true);
+    setPaymentAccordion('payment');
+    void loadPaymentDetails();
     setSendingInterest(true);
     setInterestMsg('');
     try {
@@ -244,8 +276,10 @@ export default function WomenTab() {
       });
       const data = await res.json().catch(() => ({}));
       setInterestMsg(res.ok
-        ? 'Our admin will contact you on Telegram to initiate the payment process.'
+        ? 'Kindly follow the payment instructions below and attach a screenshot of your payment to proceed to the next level.'
         : data.error || 'Unable to send payment request. Please try again.');
+    } catch {
+      setInterestMsg('Unable to send payment request. Please try again.');
     } finally {
       setSendingInterest(false);
     }
@@ -309,6 +343,9 @@ export default function WomenTab() {
       </div>
 
       {/* ── Swipe Tab ──────────────────────────────────────────────────────── */}
+      {hasPaid && <div role="status" className="mb-4 rounded-xl border border-green-400/30 bg-green-400/10 p-4 text-green-400">
+        Your payment has been processed and verified successfully. Enjoy the benefits of your plan!
+      </div>}
       {subTab === 'swipe' && (
         <div>
           {!hasPaid && women.length > 0 && (
@@ -322,21 +359,42 @@ export default function WomenTab() {
                   <p className="text-muted-foreground text-sm mt-1">
                     These are available women seeking men to date and meet. You can browse and swipe now, but photos and chat unlock only after the monthly subscription is paid.
                   </p>
-                  {interestMsg && (
-                    <p className={`text-xs mt-2 ${interestMsg.startsWith('Our admin') ? 'text-green-400' : 'text-red-400'}`}>
-                      {interestMsg}
-                    </p>
-                  )}
                 </div>
                 <Button
                   className="bg-primary text-black font-bold shrink-0"
                   onClick={handleSubscriptionInterest}
                   disabled={sendingInterest}
+                  aria-expanded={paymentAccordion === 'payment'}
+                  aria-controls="subscription-payment-details"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
                   {sendingInterest ? 'Sending...' : 'Pay Subscription'}
                 </Button>
               </div>
+              {paymentRequested && (
+                <Accordion type="single" collapsible value={paymentAccordion} onValueChange={value => { setPaymentAccordion(value); if (value) void loadPaymentDetails(); }} className="mt-4 border-t border-primary/20">
+                  <AccordionItem value="payment" className="border-0">
+                    <AccordionTrigger className="text-white text-sm">Subscription payment</AccordionTrigger>
+                    <AccordionContent id="subscription-payment-details" className="space-y-2 pb-0">
+                      <p role="status" className={sendingInterest ? 'text-muted-foreground' : interestMsg.startsWith('Kindly follow') ? 'text-green-400' : 'text-red-400'}>
+                        {sendingInterest ? 'Sending your payment request...' : interestMsg}
+                      </p>
+                      {detailsLoading ? <p className="text-muted-foreground">Loading payment details...</p> : detailsError ? (
+                        <div className="space-y-2">
+                          <p role="alert" className="text-red-400">{detailsError}</p>
+                          <Button size="sm" variant="outline" onClick={loadPaymentDetails}>Retry</Button>
+                        </div>
+                      ) : paymentDetails && (
+                        <div className="space-y-4">
+                          {paymentDetails.image_url && <img src={getImageUrl(paymentDetails.image_url)} alt="Subscription payment details" className="max-w-full max-h-[32rem] rounded-lg object-contain" />}
+                          {paymentDetails.content && <p className="text-white/90 whitespace-pre-wrap break-words">{paymentDetails.content}</p>}
+                        </div>
+                      )}
+                      <PaymentReceipt />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
             </div>
           )}
           {women.length === 0 ? (
@@ -346,7 +404,7 @@ export default function WomenTab() {
               </div>
               <h3 className="text-white font-bold text-lg">You've seen everyone!</h3>
               <p className="text-muted-foreground text-sm mt-2 mb-6">New women profiles are added regularly. Check back soon.</p>
-              <Button onClick={fetchData} variant="outline" size="sm">
+              <Button onClick={() => fetchData()} variant="outline" size="sm">
                 <RotateCcw className="w-4 h-4 mr-2" /> Refresh
               </Button>
             </div>
