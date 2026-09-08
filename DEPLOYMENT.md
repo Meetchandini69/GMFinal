@@ -30,7 +30,7 @@ Replace `https://your-backend-domain.com` with the URL where your Express server
 npm run build
 ```
 
-This creates a `dist/` folder with the compiled static site.
+This creates `dist/` with the static site, `_worker.js`, and `_routes.json`. Deploy all three together to Cloudflare Pages. Browser requests now use `/api/*` and `/uploads/*` on the frontend origin so session cookies work in private browsing. The Worker forwards them to the HTTPS backend configured by `VITE_API_URL` at build time, or `API_ORIGIN` in Cloudflare runtime variables. Never set the upstream to the frontend itself. A static-only server or `vite preview` cannot run this Worker; use `npm run dev` locally. Redeploy the frontend after this change; no database migration is needed.
 
 ### Step 3 — Download the dist folder
 
