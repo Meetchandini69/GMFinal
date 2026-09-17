@@ -988,7 +988,7 @@ export default function Admin() {
                         <Button
                           size="sm"
                           className="bg-primary text-black text-xs h-8 px-3 font-semibold"
-                          onClick={() => { setCredModal(sub); setCredMsg(''); setNewPassword(''); }}
+                          onClick={() => { setCredModal(sub); setCredMsg(''); setNewPassword(`Gigolo${sub.mobile.replace(/\D/g, '').slice(-4)}`); }}
                         >
                           <Key className="w-3 h-3 mr-1" />
                           {sub.user_id ? 'Reset Pwd' : 'Set Login'}
@@ -1395,7 +1395,7 @@ export default function Admin() {
                 <p className="text-xs text-muted-foreground mt-1">Username is always the registered mobile number</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-white mb-2">Set Password *</label>
+                <label className="block text-sm font-medium text-white mb-2">Password *</label>
                 <Input
                   type="text"
                   placeholder="Enter a password for this user"
@@ -1403,7 +1403,7 @@ export default function Admin() {
                   onChange={e => setNewPassword(e.target.value)}
                   className="h-11 bg-background border-white/10 text-white"
                 />
-                <p className="text-xs text-muted-foreground mt-1">Share this password with the user via their mobile/WhatsApp</p>
+                <p className="text-xs text-muted-foreground mt-1">Automatically filled with Gigolo followed by the last 4 digits of the mobile number. You can edit it before saving. Share this password with the user via mobile/WhatsApp.</p>
               </div>
               {credMsg && (
                 <div className={`p-3 rounded-lg text-sm border ${credMsg.startsWith('✅') ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
