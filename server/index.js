@@ -189,8 +189,8 @@ registerPaymentReceipts(app, {
 
 registerSubscriptionDetails(app, {
   requireAdmin, requireUser, upload,
-  read: async () => (await pool.query('SELECT image_url, content FROM subscription_details WHERE id = 1')).rows[0],
-  save: async (image, content) => pool.query('INSERT INTO subscription_details (id, image_url, content) VALUES (1, $1, $2) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content', [image, content]),
+  read: async () => (await pool.query('SELECT image_url, content, enabled FROM subscription_details WHERE id = 1')).rows[0],
+  save: async (image, content, enabled) => pool.query('INSERT INTO subscription_details (id, image_url, content, enabled) VALUES (1, $1, $2, $3) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content, enabled = excluded.enabled', [image, content, enabled]),
 });
 
 function requireUser(req, res, next) {

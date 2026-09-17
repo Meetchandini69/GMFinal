@@ -202,7 +202,7 @@ export default function WomenTab() {
   const [sendingInterest, setSendingInterest] = useState(false);
   const [paymentAccordion, setPaymentAccordion] = useState('');
   const [paymentRequested, setPaymentRequested] = useState(false);
-  const [paymentDetails, setPaymentDetails] = useState<{ image_url: string; content: string } | null>(null);
+  const [paymentDetails, setPaymentDetails] = useState<{ image_url: string; content: string; enabled: boolean } | null>(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsError, setDetailsError] = useState('');
   const [subTab, setSubTab] = useState<'swipe' | 'history'>('swipe');
@@ -240,7 +240,7 @@ export default function WomenTab() {
   };
 
   useEffect(() => {
-    const refresh = () => { if (document.visibilityState === 'visible') void fetchData(true).catch(() => {}); };
+    const refresh = () => { if (document.visibilityState === 'visible') { void fetchData(true).catch(() => {}); void loadPaymentDetails(true); } };
     const interval = window.setInterval(refresh, 15000);
     window.addEventListener('focus', refresh);
     return () => { window.clearInterval(interval); window.removeEventListener('focus', refresh); };
@@ -248,16 +248,21 @@ export default function WomenTab() {
 
   const hasPaid = subscriptionStatus === 'paid';
 
-  const loadPaymentDetails = async () => {
-    setDetailsLoading(true);
+  const loadPaymentDetails = async (silent = false) => {
+    if (!silent) setDetailsLoading(true);
     setDetailsError('');
-    setPaymentDetails(null);
     try {
       const res = await apiFetch('/api/user/subscription-details');
       if (!res.ok) throw new Error('Unable to load payment details. Please retry.');
-      setPaymentDetails(await res.json());
+      const details = await res.json();
+      setPaymentDetails(details);
+      if (!details.enabled) setPaymentAccordion('');
+      return details.enabled === true;
     } catch {
+      setPaymentDetails(null);
+      setPaymentAccordion('');
       setDetailsError('Unable to load payment details. Please retry.');
+      return false;
     } finally {
       setDetailsLoading(false);
     }
@@ -265,18 +270,18 @@ export default function WomenTab() {
 
   const handleSubscriptionInterest = async () => {
     setPaymentRequested(true);
-    setPaymentAccordion('payment');
-    void loadPaymentDetails();
     setSendingInterest(true);
     setInterestMsg('');
     try {
+      const enabled = await loadPaymentDetails();
+      setPaymentAccordion(enabled ? 'payment' : '');
       const res = await apiFetch('/api/user/subscription-interest', {
         method: 'POST',
         credentials: 'include',
       });
       const data = await res.json().catch(() => ({}));
       setInterestMsg(res.ok
-        ? 'Kindly follow the payment instructions below and attach a screenshot of your payment to proceed to the next level.'
+        ? enabled ? 'Kindly follow the payment instructions below and attach a screenshot of your payment to proceed to the next level.' : 'Your payment request has been sent. Please wait for the admin to share payment instructions.'
         : data.error || 'Unable to send payment request. Please try again.');
     } catch {
       setInterestMsg('Unable to send payment request. Please try again.');
@@ -371,8 +376,11 @@ export default function WomenTab() {
                   {sendingInterest ? 'Sending...' : 'Pay Subscription'}
                 </Button>
               </div>
-              {paymentRequested && (
-                <Accordion type="single" collapsible value={paymentAccordion} onValueChange={value => { setPaymentAccordion(value); if (value) void loadPaymentDetails(); }} className="mt-4 border-t border-primary/20">
+              {paymentRequested && !paymentDetails?.enabled && (
+                <p role="status" className="mt-3 text-sm text-muted-foreground">{detailsError || (sendingInterest ? 'Sending your payment request...' : paymentDetails ? 'Payment instructions sharing is currently disabled. ' : '')}{!detailsError && !sendingInterest && interestMsg && !interestMsg.startsWith('Kindly follow') ? interestMsg : ''}</p>
+              )}
+              {paymentRequested && paymentDetails?.enabled && (
+                <Accordion type="single" collapsible value={paymentAccordion} onValueChange={async value => { if (!value) setPaymentAccordion(''); else if (await loadPaymentDetails()) setPaymentAccordion(value); }} className="mt-4 border-t border-primary/20">
                   <AccordionItem value="payment" className="border-0">
                     <AccordionTrigger className="text-white text-sm">Subscription payment</AccordionTrigger>
                     <AccordionContent id="subscription-payment-details" className="space-y-2 pb-0">
@@ -382,7 +390,7 @@ export default function WomenTab() {
                       {detailsLoading ? <p className="text-muted-foreground">Loading payment details...</p> : detailsError ? (
                         <div className="space-y-2">
                           <p role="alert" className="text-red-400">{detailsError}</p>
-                          <Button size="sm" variant="outline" onClick={loadPaymentDetails}>Retry</Button>
+                          <Button size="sm" variant="outline" onClick={() => void loadPaymentDetails()}>Retry</Button>
                         </div>
                       ) : paymentDetails && (
                         <div className="space-y-4">

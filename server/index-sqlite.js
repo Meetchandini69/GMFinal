@@ -120,8 +120,8 @@ registerPaymentReceipts(app, {
 
 registerSubscriptionDetails(app, {
   requireAdmin, requireUser, upload,
-  read: async () => db.prepare('SELECT image_url, content FROM subscription_details WHERE id = 1').get(),
-  save: async (image, content) => db.prepare('INSERT INTO subscription_details (id, image_url, content) VALUES (1, ?, ?) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content').run(image, content),
+  read: async () => db.prepare('SELECT image_url, content, enabled FROM subscription_details WHERE id = 1').get(),
+  save: async (image, content, enabled) => db.prepare('INSERT INTO subscription_details (id, image_url, content, enabled) VALUES (1, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET image_url = excluded.image_url, content = excluded.content, enabled = excluded.enabled').run(image, content, Number(enabled)),
 });
 
 function requireUser(req, res, next) {

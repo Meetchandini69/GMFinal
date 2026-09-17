@@ -24,6 +24,7 @@ await pool.query(`
     image_url TEXT NOT NULL DEFAULT '',
     content TEXT NOT NULL DEFAULT ''
   );
+  ALTER TABLE subscription_details ADD COLUMN IF NOT EXISTS enabled BOOLEAN NOT NULL DEFAULT TRUE;
   CREATE TABLE IF NOT EXISTS submissions (
     id         SERIAL PRIMARY KEY,
     name       TEXT    NOT NULL,

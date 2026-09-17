@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 export default function SubscriptionDetailsEditor() {
-  const [details, setDetails] = useState({ image_url: '', content: '' });
+  const [details, setDetails] = useState({ image_url: '', content: '', enabled: true });
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
@@ -60,6 +60,13 @@ export default function SubscriptionDetailsEditor() {
       <div><h2 className="text-white text-lg font-bold">Subscription Details</h2>
         <p className="text-muted-foreground text-sm mt-1">These details appear when a member clicks Pay Subscription.</p></div>
       <fieldset disabled={busy || !ready} className="space-y-5 disabled:opacity-60">
+        <div className="space-y-2">
+          <label className="flex items-center gap-3 text-sm text-white">
+            <input type="checkbox" checked={details.enabled} onChange={e => setDetails(prev => ({ ...prev, enabled: e.target.checked }))} className="h-4 w-4 accent-primary" />
+            Enable subscription details sharing
+          </label>
+          <p className="text-xs text-muted-foreground">When disabled, members can still request payment assistance, but the payment accordion will not open. Save to apply this setting.</p>
+        </div>
         <div className="space-y-2">
           <label htmlFor="subscription-image" className="text-sm text-white">Payment image</label>
           <Input id="subscription-image" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e => { void upload(e.target.files?.[0]); e.target.value = ''; }} />

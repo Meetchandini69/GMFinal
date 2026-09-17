@@ -100,6 +100,10 @@ db.exec(`
   );
 `);
 
+if (!db.prepare('PRAGMA table_info(subscription_details)').all().some(column => column.name === 'enabled')) {
+  db.exec('ALTER TABLE subscription_details ADD COLUMN enabled INTEGER NOT NULL DEFAULT 1');
+}
+
 try {
   db.exec("ALTER TABLE profiles ADD COLUMN subscription_status TEXT DEFAULT 'unpaid'");
 } catch (err) {
