@@ -32,6 +32,8 @@ await pool.query(`
     created_at  TIMESTAMPTZ DEFAULT NOW()
   );
 
+  ALTER TABLE submissions ADD COLUMN IF NOT EXISTS telegram_username TEXT;
+
   CREATE TABLE IF NOT EXISTS users (
     id              SERIAL PRIMARY KEY,
     submission_id   INTEGER REFERENCES submissions(id),

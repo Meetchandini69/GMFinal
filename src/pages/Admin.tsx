@@ -18,6 +18,7 @@ import SubscriptionDetailsEditor from '@/components/SubscriptionDetailsEditor';
 // ── Types ──────────────────────────────────────────────────────────────────
 
 type Submission = {
+  telegram_username?: string;
   id: number;
   name: string;
   mobile: string;
@@ -967,7 +968,7 @@ export default function Admin() {
                           )}
                         </div>
                         <p className="text-muted-foreground text-xs mt-0.5">
-                          +91 {sub.mobile} · {sub.city} · {sub.age} · #{sub.id} · {new Date(sub.created_at).toLocaleDateString('en-IN')}
+                          +91 {sub.mobile} {sub.telegram_username && <span> | Telegram: @{sub.telegram_username}</span>} · {sub.city} · {sub.age} · #{sub.id} · {new Date(sub.created_at).toLocaleDateString('en-IN')}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

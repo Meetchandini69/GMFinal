@@ -135,7 +135,11 @@ function requireUser(req, res, next) {
 
 // Registration (landing page form)
 app.post('/api/register', async (req, res) => {
-  const { name, mobile, city, age } = req.body;
+  const { name, mobile, city, age, telegram_username } = req.body;
+  const telegramUsername = typeof telegram_username === 'string' ? telegram_username.trim().replace(/^@/, '') : '';
+  if (!/^[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(telegramUsername)) {
+    return res.status(400).json({ error: 'Enter a valid Telegram username (5-32 characters, starting with a letter)', field: 'telegram_username' });
+  }
   const normalizedMobile = normalizeMobile(mobile);
   if (!name || !normalizedMobile) return res.status(400).json({ error: 'Name and mobile are required' });
   if (!/^[6-9]\d{9}$/.test(normalizedMobile)) {
@@ -156,11 +160,12 @@ app.post('/api/register', async (req, res) => {
     }
 
     const stmt = db.prepare(
-      'INSERT INTO submissions (name, mobile, city, age) VALUES (?, ?, ?, ?)'
+      'INSERT INTO submissions (name, mobile, city, age, telegram_username) VALUES (?, ?, ?, ?, ?)'
     );
-    const result = stmt.run(name.trim(), normalizedMobile, city || '', age || '');
+    const result = stmt.run(name.trim(), normalizedMobile, city || '', age || '', telegramUsername);
 
     const msg =
+      `Telegram: @${telegramUsername.replace(/_/g, '\\_')}\n` +
       `🔔 *New Gigolo Registration — Gigolomeet.in*\n\n` +
       `👤 Name:   ${name}\n` +
       `📱 Mobile: +91 ${normalizedMobile}\n` +

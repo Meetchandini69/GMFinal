@@ -160,4 +160,8 @@ db.exec(`
   );
 `);
 
+if (!db.prepare('PRAGMA table_info(submissions)').all().some(column => column.name === 'telegram_username')) {
+  db.exec('ALTER TABLE submissions ADD COLUMN telegram_username TEXT');
+}
+
 export default db;
