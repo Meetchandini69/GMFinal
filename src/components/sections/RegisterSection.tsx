@@ -139,13 +139,13 @@ export function RegisterSection() {
                     <div>
                       <h3 className="text-2xl font-bold text-white mb-2">Registration Successful! 🎉</h3>
                       <p className="text-muted-foreground">
-                        Welcome, <strong className="text-white">{formData.name}</strong>! Our team will review your profile and send login details to your registered number within <strong className="text-primary">24 hours</strong>.
+                        Welcome, <strong className="text-white">{formData.name}</strong>! Our team will review your profile and send login details on Telegram using your registered Telegram phone number or Telegram ID within <strong className="text-primary">24 hours</strong>.
                       </p>
                     </div>
                     <div className="bg-primary/10 border border-primary/20 rounded-xl p-5 w-full text-left">
                       <p className="text-primary font-semibold text-sm mb-2">✅ Next Steps:</p>
                       <ol className="text-muted-foreground text-sm space-y-1.5 list-decimal list-inside">
-                        <li>Check your mobile for login credentials (within 24 hrs)</li>
+                        <li>Check Telegram for login credentials sent using your registered Telegram phone number or Telegram ID (within 24 hrs)</li>
                         <li>Complete your full profile after logging in</li>
                         <li>Submit for review and go live</li>
                       </ol>

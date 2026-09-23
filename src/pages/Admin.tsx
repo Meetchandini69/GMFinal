@@ -1,3 +1,4 @@
+import PartnersEditor from '@/components/PartnersEditor';
 import PaymentRequests, { type PaymentRequest } from '@/components/PaymentRequests';
 import PaymentReceipt from '@/components/PaymentReceipt';
 import React, { useState, useEffect, useRef } from 'react';
@@ -429,7 +430,7 @@ export default function Admin() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // top-level tab
-  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations' | 'subscription' | 'payments'>('submissions');
+  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations' | 'subscription' | 'payments' | 'partners'>('submissions');
 
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [paymentError, setPaymentError] = useState('');
@@ -833,7 +834,7 @@ export default function Admin() {
               size="sm"
               variant="outline"
               onClick={mainTab === 'payments' ? loadPaymentRequests : mainTab === 'submissions' ? loadSubmissions : mainTab === 'women' ? loadWomen : loadLocationPages}
-              hidden={mainTab === 'subscription'}
+              hidden={mainTab === 'subscription' || mainTab === 'partners'}
             >
               Refresh
             </Button>
@@ -848,6 +849,7 @@ export default function Admin() {
 
         {/* ── Main tabs ── */}
         <div className="flex flex-wrap gap-2 mb-8">
+          <button onClick={() => setMainTab('partners')} className={`px-5 py-2.5 rounded-full text-sm font-semibold ${mainTab === 'partners' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground'}`}>Partners</button>
           <button onClick={() => setMainTab('payments')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'payments' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}>
             <CreditCard className="w-4 h-4" /> Payment Initiated
             <span className="rounded-full px-2 bg-orange-500/20" aria-label="Pending payments">{paymentRequests.filter(p => p.subscription_status !== 'paid').length}</span>
@@ -879,6 +881,7 @@ export default function Admin() {
         </div>
 
         {/* ══════════════ SUBMISSIONS TAB ══════════════ */}
+        {mainTab === 'partners' && <PartnersEditor />}
         {mainTab === 'subscription' && <SubscriptionDetailsEditor />}
         {mainTab === 'payments' && <>
           {paymentError && <p role="alert" className="text-red-400 mb-4">{paymentError}</p>}

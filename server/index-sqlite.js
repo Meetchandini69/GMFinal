@@ -1,3 +1,4 @@
+import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
 import express from 'express';
@@ -116,6 +117,18 @@ registerPaymentReceipts(app, {
   requireAdmin, requireUser,
   read: async id => db.prepare('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = ?').get(id),
   save: async (id, type, image) => db.prepare('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES (?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET mime_type = excluded.mime_type, image_data = excluded.image_data').run(id, type, image),
+});
+
+registerPartners(app, {
+  requireAdmin,
+  list: async () => db.prepare('SELECT id, alt, url, position FROM partners ORDER BY position, id').all(),
+  image: async id => db.prepare('SELECT mime_type, image_data FROM partners WHERE id=?').get(id),
+  save: async (id, alt, url, position, image) => {
+    if (!id) return { id: Number(db.prepare('INSERT INTO partners (alt,url,position,mime_type,image_data) VALUES (?,?,?,?,?)').run(alt,url,position,image.type,image.buffer).lastInsertRowid) };
+    const result = db.prepare('UPDATE partners SET alt=?,url=?,position=?,mime_type=COALESCE(?,mime_type),image_data=COALESCE(?,image_data) WHERE id=?').run(alt,url,position,image?.type ?? null,image?.buffer ?? null,id);
+    return result.changes ? { id } : null;
+  },
+  remove: async id => db.prepare('DELETE FROM partners WHERE id=?').run(id).changes,
 });
 
 registerSubscriptionDetails(app, {

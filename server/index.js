@@ -1,3 +1,4 @@
+import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
 import express from 'express';
@@ -185,6 +186,17 @@ registerPaymentReceipts(app, {
   requireAdmin, requireUser,
   read: async id => (await pool.query('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = $1', [id])).rows[0],
   save: async (id, type, image) => pool.query('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type, image_data = EXCLUDED.image_data', [id, type, image]),
+});
+
+registerPartners(app, {
+  requireAdmin,
+  list: async () => (await pool.query('SELECT id, alt, url, position FROM partners ORDER BY position, id')).rows,
+  image: async id => (await pool.query('SELECT mime_type, image_data FROM partners WHERE id = $1', [id])).rows[0],
+  save: async (id, alt, url, position, image) => {
+    if (!id) return (await pool.query('INSERT INTO partners (alt, url, position, mime_type, image_data) VALUES ($1,$2,$3,$4,$5) RETURNING id', [alt,url,position,image.type,image.buffer])).rows[0];
+    return (await pool.query('UPDATE partners SET alt=$1, url=$2, position=$3, mime_type=COALESCE($4,mime_type), image_data=COALESCE($5,image_data) WHERE id=$6 RETURNING id', [alt,url,position,image?.type ?? null,image?.buffer ?? null,id])).rows[0];
+  },
+  remove: async id => (await pool.query('DELETE FROM partners WHERE id=$1', [id])).rowCount,
 });
 
 registerSubscriptionDetails(app, {

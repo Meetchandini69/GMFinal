@@ -16,6 +16,15 @@ export const query = (text, params) => pool.query(text, params);
 // Create tables on startup
 await pool.query(`
 
+  CREATE TABLE IF NOT EXISTS partners (
+    id SERIAL PRIMARY KEY,
+    alt TEXT NOT NULL,
+    url TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    mime_type TEXT NOT NULL,
+    image_data BYTEA NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS subscription_details (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     image_url TEXT NOT NULL DEFAULT '',

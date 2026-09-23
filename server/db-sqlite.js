@@ -17,6 +17,15 @@ db.pragma('foreign_keys = ON');
 // ── Schema ─────────────────────────────────────────────────────────────────
 db.exec(`
 
+  CREATE TABLE IF NOT EXISTS partners (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    alt TEXT NOT NULL,
+    url TEXT NOT NULL,
+    position INTEGER NOT NULL DEFAULT 0,
+    mime_type TEXT NOT NULL,
+    image_data BLOB NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS subscription_details (
     id INTEGER PRIMARY KEY CHECK (id = 1),
     image_url TEXT NOT NULL DEFAULT '',

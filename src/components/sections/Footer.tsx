@@ -1,9 +1,12 @@
+import PartnerSlider from '@/components/PartnerSlider';
 import React from 'react';
 import { Crown, Mail, MapPin, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
+    <>
+    <PartnerSlider />
     <footer className="bg-[#050505] pt-20 pb-8 border-t border-white/10">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -92,5 +95,6 @@ export function Footer() {
         </div>
       </div>
     </footer>
+    </>
   );
 }
