@@ -19,6 +19,9 @@ const AGE_RANGES = ["18–22", "23–27", "28–32", "33–38", "39–45", "46�
 
 type Step = 'form' | 'submitting' | 'success';
 
+const TELEGRAM_GREETING = 'Hi I am interested in Gigolo service';
+const teamTelegramLink = `https://t.me/Gigolomeetofficial?text=${encodeURIComponent(TELEGRAM_GREETING)}`;
+
 export function RegisterSection() {
   const [step, setStep] = useState<Step>('form');
   const [formData, setFormData] = useState({ name: '', phone: '', telegram_username: '', city: '', age: '' });
@@ -139,16 +142,23 @@ export function RegisterSection() {
                     <div>
                       <h3 className="text-2xl font-bold text-white mb-2">Registration Successful! 🎉</h3>
                       <p className="text-muted-foreground">
-                        Welcome, <strong className="text-white">{formData.name}</strong>! Our team will review your profile and send login details on Telegram using your registered Telegram phone number or Telegram ID within <strong className="text-primary">24 hours</strong>.
+                        Thank you, <strong className="text-white">{formData.name}</strong>! Your registration is complete. To help our official Gigolo team validate your registered Telegram ID or phone number, send us a message on Telegram using the button below.
                       </p>
                     </div>
                     <div className="bg-primary/10 border border-primary/20 rounded-xl p-5 w-full text-left">
                       <p className="text-primary font-semibold text-sm mb-2">✅ Next Steps:</p>
                       <ol className="text-muted-foreground text-sm space-y-1.5 list-decimal list-inside">
-                        <li>Check Telegram for login credentials sent using your registered Telegram phone number or Telegram ID (within 24 hrs)</li>
-                        <li>Complete your full profile after logging in</li>
-                        <li>Submit for review and go live</li>
+                        <li>Open our official team's Telegram chat using the button below.</li>
+                        <li>Use the Telegram account associated with the Telegram ID or phone number you registered.</li>
+                        <li>Tap Send to send the prefilled message. Our team will review your details and guide you through the next steps.</li>
                       </ol>
+                    </div>
+                    <div className="w-full space-y-3">
+                      <p className="text-sm text-muted-foreground">Your message: <span className="text-white">{TELEGRAM_GREETING}</span></p>
+                      <Button asChild className="w-full h-auto min-h-12 py-3 whitespace-normal bg-primary text-primary-foreground font-bold">
+                        <a href={teamTelegramLink} target="_blank" rel="noopener noreferrer">Message Our Official Team on Telegram</a>
+                      </Button>
+                      <p className="text-xs text-muted-foreground">Telegram will open in a new tab or its app. Tap Send there to send the message from your account. If the message is not prefilled, copy the text above. Opening the link does not automatically validate your details.</p>
                     </div>
                   </motion.div>
                 ) : (
