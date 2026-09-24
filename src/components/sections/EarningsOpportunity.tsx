@@ -34,7 +34,7 @@ export function EarningsOpportunity() {
                 "No experience required — just be presentable & confident",
                 "You choose which women to meet & when",
                 "Work locally in your city or accept travel assignments",
-                "Zero investment — registration is 100% free",
+                "Choose a paid membership — joining fees are required",
                 "Real cash payments — no delays, no commissions",
                 "Complete identity protection at all times",
               ].map((point, i) => (
@@ -48,7 +48,7 @@ export function EarningsOpportunity() {
             </ul>
 
             <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 text-lg px-8 h-14 w-full md:w-auto font-bold" asChild>
-              <a href="#register">Apply for Gigolo Job — Free <ArrowRight className="ml-2 w-5 h-5" /></a>
+              <a href="/free-registration">Apply for Gigolo Job <ArrowRight className="ml-2 w-5 h-5" /></a>
             </Button>
           </div>
 

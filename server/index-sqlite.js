@@ -1,3 +1,5 @@
+import { registerSelfRegistration, signupNotifier } from './self-registration.js';
+import { sqliteSignupStore } from './signup-store.js';
 import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
@@ -11,7 +13,7 @@ import { mkdirSync } from 'fs';
 import path from 'path';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import db from './db.js';
+import db from './db-sqlite.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, '../uploads');
@@ -130,6 +132,8 @@ registerPartners(app, {
   },
   remove: async id => db.prepare('DELETE FROM partners WHERE id=?').run(id).changes,
 });
+
+registerSelfRegistration(app, { store: sqliteSignupStore(db), upload, notify: signupNotifier(TG_TOKEN, TG_CHAT), siteUrl: (process.env.SITE_URL || 'https://gigolomeet.in').replace(/\/+$/, '') });
 
 registerSubscriptionDetails(app, {
   requireAdmin, requireUser, upload,

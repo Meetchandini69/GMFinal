@@ -199,7 +199,7 @@ export default function Coimbatore() {
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        "Premier gigolo service, call boy jobs & male escort opportunities in Coimbatore. Meet women in RS Puram, Gandhipuram, Peelamedu. Earn ₹50K–₹2L/month. Free registration. 100% private."
+        "Premier gigolo service, call boy jobs & male escort opportunities in Coimbatore. Meet women in RS Puram, Gandhipuram, Peelamedu. Earn ₹50K–₹2L/month. Joining fees apply. 100% private."
       );
     }
     window.scrollTo(0, 0);
@@ -228,11 +228,11 @@ export default function Coimbatore() {
               <br />Premier Male Escort &amp; Call Boy Jobs
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mb-10">
-              843+ lonely, divorced and single women in Coimbatore are looking for a gigolo right now — in RS Puram, Gandhipuram, Peelamedu and all major areas. Register free and start earning today.
+              843+ lonely, divorced and single women in Coimbatore are looking for a gigolo right now — in RS Puram, Gandhipuram, Peelamedu and all major areas. Register now and start earning today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 mb-14">
               <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-10 h-12" asChild>
-                <a href="#register">Register Free — Start Today →</a>
+                <a href="/free-registration">Register Now — Start Today →</a>
               </Button>
               <Button size="lg" variant="outline" className="border-primary/40 text-white hover:bg-primary/10 h-12" asChild>
                 <a href="#gallery">View Women Profiles</a>
@@ -305,7 +305,7 @@ export default function Coimbatore() {
                 Women in <span className="text-primary">Coimbatore</span> Waiting Right Now
               </h2>
               <p className="text-muted-foreground max-w-xl mx-auto">
-                These women posted profiles on Gigolomeet.in looking for a gigolo in Coimbatore. Register free to see their full contact.
+                These women posted profiles on Gigolomeet.in looking for a gigolo in Coimbatore. Register now to see their full contact.
               </p>
             </div>
             <div className="flex justify-center mb-10">
@@ -367,16 +367,16 @@ export default function Coimbatore() {
                       <span className="text-primary text-xs font-bold">{profile.reward}</span>
                     </div>
                     <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold" asChild>
-                      <a href="#register"><MessageCircle className="w-4 h-4 mr-2" /> Message Her</a>
+                      <a href="/free-registration"><MessageCircle className="w-4 h-4 mr-2" /> Message Her</a>
                     </Button>
-                    <p className="text-[10px] text-muted-foreground text-center">Register free to unlock contact</p>
+                    <p className="text-[10px] text-muted-foreground text-center">Register now to unlock contact</p>
                   </div>
                 </motion.div>
               ))}
             </div>
             <div className="text-center">
               <Button size="lg" className="bg-primary text-primary-foreground font-bold px-10 h-12" asChild>
-                <a href="#register">View All 843 Coimbatore Profiles →</a>
+                <a href="/free-registration">View All 843 Coimbatore Profiles →</a>
               </Button>
             </div>
           </div>
@@ -482,7 +482,7 @@ export default function Coimbatore() {
                   ))}
                 </div>
                 <Button className="bg-primary text-primary-foreground font-bold px-8 h-11" asChild>
-                  <a href="#register">Join the Platform →</a>
+                  <a href="/free-registration">Join the Platform →</a>
                 </Button>
               </div>
               <div>
@@ -509,7 +509,7 @@ export default function Coimbatore() {
               {[
                 { icon: Shield, title: '100% Private & Discreet', desc: 'Your identity is never revealed. All profiles and conversations are completely confidential.' },
                 { icon: Star, title: 'Verified Women Only', desc: 'All women profiles in Coimbatore are manually reviewed and verified before publishing.' },
-                { icon: Clock, title: 'Free Registration', desc: 'Sign up in 2 minutes and start browsing profiles in Coimbatore instantly.' },
+                { icon: Clock, title: 'Paid Registration', desc: 'Sign up in 2 minutes and start browsing profiles in Coimbatore instantly.' },
               ].map(({ icon: Icon, title, desc }) => (
                 <div key={title} className="flex flex-col items-center text-center p-6 bg-card rounded-2xl border border-white/10">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
@@ -536,7 +536,7 @@ export default function Coimbatore() {
               {AREAS.map((area) => (
                 <a
                   key={area}
-                  href="#register"
+                  href="/free-registration"
                   className="inline-flex items-center gap-1.5 bg-background border border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200 rounded-full px-4 py-2 text-sm text-muted-foreground hover:text-white cursor-pointer"
                 >
                   <MapPin className="w-3 h-3 text-primary" />
@@ -577,7 +577,7 @@ export default function Coimbatore() {
               </div>
               <div>
                 <h3 className="text-white font-semibold text-base mb-3">Male Escort Jobs — Coimbatore</h3>
-                <p className="mb-5">Male escort and gigolo services in Coimbatore are completely private. Your name, photo and contact are visible only to matched women members. Register free to get started today.</p>
+                <p className="mb-5">Male escort and gigolo services in Coimbatore are completely private. Your name, photo and contact are visible only to matched women members. Register now to get started today.</p>
                 <h3 className="text-white font-semibold text-base mb-3">Playboy Jobs in Coimbatore</h3>
                 <p>Playboy model opportunities in Coimbatore span luxury dates, social events, hotel companionship and outstation travel. The profession empowers men to build careers with dignity, full autonomy, and substantial income — all through our verified, secure platform.</p>
               </div>
@@ -612,7 +612,7 @@ export default function Coimbatore() {
                 </div>
               </div>
               <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-12 h-13" asChild>
-                <a href="#register">Register Now — It's Free →</a>
+                <a href="/free-registration">Register Now — Choose Your Plan →</a>
               </Button>
             </div>
           </div>

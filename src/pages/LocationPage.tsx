@@ -165,12 +165,12 @@ export default function LocationPage() {
   const trustFeatures = sections.trust?.features?.length ? sections.trust.features : [
     { title: 'Private & Discreet', description: 'Your profile and conversations remain under your control.' },
     { title: 'Verified Members', description: 'Profiles are reviewed before they are published.' },
-    { title: 'Free Registration', description: 'Create your profile in minutes and start exploring.' },
+    { title: 'Paid Registration', description: 'Create your profile in minutes and start exploring.' },
   ];
   const TRUST_ICONS = [Shield, Star, Clock];
 
   const faqItems = sections.faqs?.items?.length ? sections.faqs.items : [
-    { question: 'How do I get started in a gigolo job?', answer: 'Register free, complete your professional profile, and go through our verification process. Once approved, you can start receiving connection requests from people in your city.' },
+    { question: 'How do I get started in a gigolo job?', answer: 'Register now, complete your professional profile, and go through our verification process. Once approved, you can start receiving connection requests from people in your city.' },
     { question: 'Is the platform safe and confidential?', answer: 'We prioritise privacy, clear boundaries, and consensual professional companionship. Keep conversations on the platform, verify who you meet, and always choose a safe public location for a first meeting.' },
     { question: 'What kind of opportunities are available?', answer: 'Members can explore event companionship, travel companionship, social dates, and private one-to-one companionship based on their schedule and boundaries.' },
     { question: 'How much can I earn?', answer: 'Earnings vary by experience, availability, service type, and agreement with the client. Use the earning ranges on this page as general examples rather than guaranteed income.' },
@@ -217,7 +217,7 @@ export default function LocationPage() {
             )}
             <div className="flex flex-col sm:flex-row gap-4 mb-14">
               <Button size="lg" className="bg-primary text-black font-bold text-base px-10 h-12" asChild>
-                <a href="#register">Register Free — Start Today →</a>
+                <a href="/free-registration">Register Now — Start Today →</a>
               </Button>
               <Button size="lg" variant="outline" className="border-primary/40 text-white hover:bg-primary/10 h-12" asChild>
                 <a href="#areas">View Areas We Serve</a>
@@ -293,7 +293,7 @@ export default function LocationPage() {
               <RichOrFallback
                 html={sections.gallery?.intro}
                 className="text-muted-foreground max-w-xl mx-auto"
-                fallback={`Discover verified members looking for professional companionship in ${page.city}. Register free to unlock full profiles and start a conversation.`}
+                fallback={`Discover verified members looking for professional companionship in ${page.city}. Register now to unlock full profiles and start a conversation.`}
               />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
@@ -324,14 +324,14 @@ export default function LocationPage() {
                     </div>
                     <p className="text-sm text-gray-300 mb-4">{profile.reward}</p>
                     <Button className="w-full bg-primary text-primary-foreground font-semibold" asChild>
-                      <a href="#register"><MessageCircle className="w-4 h-4 mr-2" /> Message Member</a>
+                      <a href="/free-registration"><MessageCircle className="w-4 h-4 mr-2" /> Message Member</a>
                     </Button>
                   </div>
                 </motion.div>
               ))}
             </div>
             <div className="text-center mt-10">
-              <Button size="lg" className="bg-primary text-black font-bold px-10" asChild><a href="#register">View All {page.city} Profiles →</a></Button>
+              <Button size="lg" className="bg-primary text-black font-bold px-10" asChild><a href="/free-registration">View All {page.city} Profiles →</a></Button>
             </div>
           </div>
         </section>
@@ -471,7 +471,7 @@ export default function LocationPage() {
               </div>
               <div className="flex flex-wrap justify-center gap-3 max-w-4xl mx-auto">
                 {primaryAreas.map(area => (
-                  <a key={area} href="#register" className="px-4 py-2 bg-card border border-white/10 rounded-full text-sm text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors">
+                  <a key={area} href="/free-registration" className="px-4 py-2 bg-card border border-white/10 rounded-full text-sm text-muted-foreground hover:border-primary/40 hover:text-primary transition-colors">
                     <MapPin className="w-3 h-3 text-primary inline mr-1" />{area}
                   </a>
                 ))}
@@ -536,7 +536,7 @@ export default function LocationPage() {
                 className="text-muted-foreground mb-8 text-lg"
                 fallback={`Create your profile and discover professional companionship opportunities in ${page.city}.`}
               />
-              <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-12" asChild><a href="#register">Register Now — It's Free →</a></Button>
+              <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-12" asChild><a href="/free-registration">Register Now — Choose Your Plan →</a></Button>
             </div>
           </div>
         </section>

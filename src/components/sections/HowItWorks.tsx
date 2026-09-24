@@ -5,8 +5,8 @@ import { UserPlus, Search, CalendarHeart, FileText, CheckCircle, Wallet } from '
 const GIGOLO_STEPS = [
   {
     icon: UserPlus,
-    title: "Start on Telegram",
-    description: "Message our official team on Telegram first. We will guide you and send you the Free Registration page link to complete your details."
+    title: "Choose a Plan & Register",
+    description: "Choose a joining plan, create your login details and submit your profile. Your member panel opens automatically. Send your profile link on Telegram for verification."
   },
   {
     icon: CheckCircle,

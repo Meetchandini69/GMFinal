@@ -319,7 +319,7 @@ export default function AdminPageBuilder() {
             onChange={items => setSections(sec => ({ ...sec, opportunities: { ...sec.opportunities, memberTypes: items } }))} />
         </SectionCard>
 
-        <SectionCard title="Trust badges" subtitle="Private & Discreet / Verified Members / Free Registration">
+        <SectionCard title="Trust badges" subtitle="Private & Discreet / Verified Members / Paid Registration">
           <ItemsEditor label="Trust badge cards" items={s.trust?.features || []} fields={FEATURE_FIELDS} max={3} emptyItem={EMPTY_FEATURE}
             onChange={items => setSections(sec => ({ ...sec, trust: { features: items } }))} />
         </SectionCard>

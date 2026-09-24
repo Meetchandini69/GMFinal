@@ -11,9 +11,9 @@ export default function RegistrationThankYou() {
       <div className="max-w-xl mx-auto text-center rounded-3xl bg-card border border-white/10 p-6 sm:p-10">
         <CheckCircle className="w-16 h-16 text-primary mx-auto mb-6" />
         <h1 className="text-3xl font-serif font-bold text-white mb-5">Thank You for Registering!</h1>
-        <p className="text-muted-foreground leading-relaxed">Your registration has been submitted successfully. Our team will review your details and get back to you soon on Telegram with your login details.</p>
+        <p className="text-muted-foreground leading-relaxed">Your registration has been submitted successfully. You can now log in using the phone number and password you chose. Open your member panel and send your profile link on Telegram for verification.</p>
         <p className="text-primary font-semibold mt-5 mb-8">Stay active on Telegram and keep an eye on your chat with our official team.</p>
-        <Button asChild><a href="/">Back to Home</a></Button>
+        <Button asChild><a href="/dashboard">Open My Panel</a></Button>
       </div>
     </main>
     <Footer />

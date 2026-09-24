@@ -78,7 +78,7 @@ export function PricingPlans() {
             Choose Your <span className="text-primary">Gigolo Membership</span>
           </h2>
           <p className="text-muted-foreground max-w-2xl mx-auto">
-            Select the membership duration that works best for you and complete your profile after registration.
+            Select your membership duration during registration, create your login details, and complete your profile.
           </p>
         </div>
 
@@ -131,14 +131,14 @@ export function PricingPlans() {
                 variant={plan.buttonVariant as any}
                 asChild
               >
-                <a href="#register">{plan.buttonText}</a>
+                <a href="/free-registration">{plan.buttonText}</a>
               </Button>
             </div>
           ))}
         </div>
 
         <p className="text-center text-muted-foreground text-sm mt-8">
-          Complete registration first, then choose any one membership plan from your dashboard.
+          Choose a joining plan during registration. Joining fees are required; creating an account does not confirm payment.
         </p>
       </div>
     </section>

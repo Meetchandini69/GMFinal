@@ -173,4 +173,7 @@ if (!db.prepare('PRAGMA table_info(submissions)').all().some(column => column.na
   db.exec('ALTER TABLE submissions ADD COLUMN telegram_username TEXT');
 }
 
+if (!db.prepare('PRAGMA table_info(users)').all().some(column => column.name === 'email')) db.exec('ALTER TABLE users ADD COLUMN email TEXT');
+db.exec('CREATE UNIQUE INDEX IF NOT EXISTS users_signup_email ON users (LOWER(email)) WHERE email IS NOT NULL');
+
 export default db;

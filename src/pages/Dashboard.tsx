@@ -1,3 +1,5 @@
+import JoiningFeeNotice from '@/components/JoiningFeeNotice';
+import ProfileFields, { type Profile } from '@/components/ProfileFields';
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import {
@@ -7,56 +9,13 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import { motion } from 'framer-motion';
-import PhotoUploader from '@/components/PhotoUploader';
 import WomenTab from '@/components/WomenTab';
-import { getImageUrl } from "@/lib/api";
-
-type Profile = {
-  user_id?: number;
-  mobile?: string;
-  full_name?: string;
-  category?: string;
-  date_of_birth?: string;
-  height?: string;
-  weight?: string;
-  marks_on_face?: string;
-  complexion?: string;
-  state?: string;
-  city?: string;
-  city_area?: string;
-  address?: string;
-  email?: string;
-  alt_mobile?: string;
-  more_info?: string;
-  joining_plan?: string;
-  photo_url?: string;
-  member_status?: string;
-  subscription_status?: string;
-  profile_step?: number;
-  submitted_at?: string;
-};
 
 const STEPS = [
   { id: 0, label: 'Account Activated', icon: CheckCircle },
   { id: 1, label: 'Profile Updated', icon: User },
   { id: 2, label: 'Submitted for Review', icon: FileText },
-];
-
-const STATES = ['Tamil Nadu', 'Maharashtra', 'Delhi', 'Karnataka', 'Telangana', 'West Bengal', 'Gujarat', 'Rajasthan', 'Uttar Pradesh', 'Punjab', 'Other'];
-const CITIES = ['Chennai', 'Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Kolkata', 'Ahmedabad', 'Jaipur', 'Coimbatore', 'Pune', 'Lucknow', 'Other'];
-const COMPLEXIONS = ['Very Fair', 'Fair', 'Wheatish', 'Brown', 'Dark'];
-const CATEGORIES = ['Gigolo', 'Playboy', 'Male Escort'];
-const JOINING_PLANS = [
-  { value: '1 Month Plan', title: '1 Month Plan - Rs. 2,500', description: 'Valid for 1 month' },
-  { value: '2 Months Plan', title: '2 Months Plan - Rs. 4,000', description: 'Valid for 2 months' },
-  { value: '6 Months Plan', title: '6 Months Plan - Rs. 9,000', description: 'Valid for 6 months' },
-  { value: '1 Year Plan', title: '1 Year Plan - Rs. 12,000', description: 'Valid for 1 year' },
 ];
 
 const getJoiningPlanFee = (plan?: string) => {
@@ -197,6 +156,16 @@ export default function Dashboard() {
       </header>
 
       <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl">
+        <JoiningFeeNotice />
+        {profile.user_id && <div className="rounded-2xl border-2 border-primary bg-primary/10 p-5 mb-8 text-center">
+          <h2 className="text-xl font-bold text-white mb-2">Verify Your Profile on Telegram</h2>
+          <p className="text-sm text-muted-foreground mb-4">Send your profile link from your Telegram account so our team can reply with verification and joining-fee instructions.</p>
+          <Button asChild className="motion-safe:animate-pulse gold-glow h-auto min-h-12 py-3 whitespace-normal font-bold">
+            <a href={`https://t.me/Gigolomeetofficial?text=${encodeURIComponent(`Hi I am interested in Gigolo service. Please verify my profile: ${window.location.origin}/member-profile/${profile.user_id}`)}`} target="_blank" rel="noopener noreferrer">Send Your Details on Telegram to Verify</a>
+          </Button>
+          <p className="text-xs text-muted-foreground mt-3">Tap Send in Telegram. Opening the chat does not automatically verify your profile or payment.</p>
+        </div>}
+
 
         {/* ── Step Wizard ─────────────────────────────────────────────────── */}
         <motion.div
@@ -323,39 +292,9 @@ export default function Dashboard() {
                 {profile.member_status === 'active' ? '✅' : profile.member_status === 'pending_review' ? '⏳' : '⚠️'}
                 {statusLabel[profile.member_status || 'inactive']}
               </div>
-              <div className="mt-5 space-y-4 text-sm leading-relaxed text-muted-foreground">
-                <section className="rounded-xl border border-primary/20 border-l-4 border-l-primary bg-primary/5 p-4 sm:p-5">
-                  <h4 className="mb-2 flex items-center gap-2 font-semibold text-white"><FileText aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" />Profile Submission is Mandatory</h4>
-                  <p>To access any of the options below, you must first register and submit your profile. Your profile submission is required for both Free Registration and the Premium Plan.</p>
-                </section>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <section className="membership-option membership-free">
-                    <div className="membership-icon"><User aria-hidden="true" className="h-6 w-6" /></div>
-                    <span className="membership-eyebrow">Option 1 · Get discovered</span>
-                    <h4 className="mb-3 text-xl font-bold text-white">Free Registration</h4>
-                    <p>Register and submit your profile for free. If a woman likes your profile, she can view it and contact you directly through message or phone.</p>
-                  </section>
-                  <section className="membership-option membership-premium">
-                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                      <div className="membership-icon !mb-0"><Crown aria-hidden="true" className="h-6 w-6" /></div>
-                      <span className="membership-badge"><Sparkles aria-hidden="true" className="h-3.5 w-3.5" /> More ways to connect</span>
-                    </div>
-                    <span className="membership-eyebrow">Option 2 · Monthly access</span>
-                    <h4 className="mb-3 text-xl font-bold text-amber-100">Premium Plan</h4>
-                    <p>You can choose our monthly Premium Plan for additional access and features, including the ability to view and directly message available profiles.</p>
-                    <p className="mt-4 rounded-lg border border-amber-300/15 bg-black/20 p-3"><strong className="block mb-1 text-amber-100">Joining the Premium Plan is completely optional.</strong> There is no pressure or obligation to upgrade. You can choose this plan only if you want the additional features.</p>
-                  </section>
-                </div>
-                <section className="membership-option membership-bonus">
-                  <div className="flex items-start gap-4">
-                    <div className="membership-icon shrink-0 hidden sm:flex"><Gift aria-hidden="true" className="h-6 w-6" /></div>
-                    <div>
-                  <span className="membership-badge mb-3"><Gift aria-hidden="true" className="h-3.5 w-3.5" /> Added bonus</span>
-                  <h4 className="mb-2 text-lg font-bold text-teal-100">Free Registration on Partner Platforms</h4>
-                  <p>We are also connected with partner platforms where you may receive a <strong className="text-white">free registration</strong>, helping increase your profile's visibility and reach more people who are looking to connect.</p>
-                    </div>
-                  </div>
-                </section>
+              <div className="mt-5 text-sm leading-relaxed text-muted-foreground">
+                <p>Your account is ready. Send your profile link to our official team on Telegram for verification and joining-fee instructions.</p>
+                <p className="mt-3">Available Women photos and chat stay locked until your payment is confirmed. Creating an account does not mark your subscription as paid.</p>
               </div>
             </div>
 
@@ -461,177 +400,7 @@ export default function Dashboard() {
                 </div>
               )}
 
-              {/* Photo */}
-              <div className="mb-8 p-4 bg-background rounded-xl border border-white/10">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary/40 flex items-center justify-center shrink-0">
-                    {profile.photo_url
-                      ? <img src={getImageUrl(profile.photo_url)} alt="Profile" className="w-full h-full object-cover rounded-full" />
-                      : <User className="w-6 h-6 text-primary" />
-                    }
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold">{profile.full_name || 'Your Name'}</p>
-                    <p className="text-muted-foreground text-sm">+91 {profile.mobile}</p>
-                  </div>
-                </div>
-                {editing && (
-                  <PhotoUploader
-                    currentUrl={getImageUrl(profile.photo_url)}
-                    onUploadSuccess={url => update('photo_url', url)}
-                  />
-                )}
-              </div>
-
-              {/* ── Form Fields ──────────────────────────────────────────── */}
-              <div className="space-y-6">
-
-                {/* General Info */}
-                <div>
-                  <h4 className="text-primary text-sm font-bold uppercase tracking-wider mb-4">General Information</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="Category" editing={editing}>
-                      {editing
-                        ? <Select value={profile.category || ''} onValueChange={v => update('category', v)}>
-                            <SelectTrigger className="h-10 bg-background border-white/10 text-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent className="bg-card border-white/10">{CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                          </Select>
-                        : <span>{profile.category || '—'}</span>}
-                    </Field>
-                    <Field label="Full Name" editing={editing}>
-                      {editing
-                        ? <Input value={profile.full_name || ''} onChange={e => update('full_name', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Full name" />
-                        : <span>{profile.full_name || '—'}</span>}
-                    </Field>
-                    <Field label="Date of Birth" editing={editing}>
-                      {editing
-                        ? <Input type="date" value={profile.date_of_birth || ''} onChange={e => update('date_of_birth', e.target.value)} className="h-10 bg-background border-white/10 text-white" />
-                        : <span>{profile.date_of_birth || '—'}</span>}
-                    </Field>
-                    <Field label="Height (cm)" editing={editing}>
-                      {editing
-                        ? <Input type="number" value={profile.height || ''} onChange={e => update('height', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="e.g. 175" />
-                        : <span>{profile.height ? `${profile.height} cm` : '—'}</span>}
-                    </Field>
-                    <Field label="Weight (kg)" editing={editing}>
-                      {editing
-                        ? <Input type="number" value={profile.weight || ''} onChange={e => update('weight', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="e.g. 70" />
-                        : <span>{profile.weight ? `${profile.weight} kg` : '—'}</span>}
-                    </Field>
-                    <Field label="Complexion" editing={editing}>
-                      {editing
-                        ? <Select value={profile.complexion || ''} onValueChange={v => update('complexion', v)}>
-                            <SelectTrigger className="h-10 bg-background border-white/10 text-white"><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent className="bg-card border-white/10">{COMPLEXIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                          </Select>
-                        : <span>{profile.complexion || '—'}</span>}
-                    </Field>
-                    <Field label="Marks on Face" editing={editing}>
-                      {editing
-                        ? <Input value={profile.marks_on_face || ''} onChange={e => update('marks_on_face', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="None / describe" />
-                        : <span>{profile.marks_on_face || '—'}</span>}
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Location */}
-                <div>
-                  <h4 className="text-primary text-sm font-bold uppercase tracking-wider mb-4">Location</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="State" editing={editing}>
-                      {editing
-                        ? <Select value={profile.state || ''} onValueChange={v => update('state', v)}>
-                            <SelectTrigger className="h-10 bg-background border-white/10 text-white"><SelectValue placeholder="Select state" /></SelectTrigger>
-                            <SelectContent className="bg-card border-white/10">{STATES.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                          </Select>
-                        : <span>{profile.state || '—'}</span>}
-                    </Field>
-                    <Field label="City" editing={editing}>
-                      {editing
-                        ? <Select value={profile.city || ''} onValueChange={v => update('city', v)}>
-                            <SelectTrigger className="h-10 bg-background border-white/10 text-white"><SelectValue placeholder="Select city" /></SelectTrigger>
-                            <SelectContent className="bg-card border-white/10">{CITIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                          </Select>
-                        : <span>{profile.city || '—'}</span>}
-                    </Field>
-                    <Field label="City Area" editing={editing}>
-                      {editing
-                        ? <Input value={profile.city_area || ''} onChange={e => update('city_area', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Area / locality" />
-                        : <span>{profile.city_area || '—'}</span>}
-                    </Field>
-                    <Field label="Address" editing={editing}>
-                      {editing
-                        ? <Input value={profile.address || ''} onChange={e => update('address', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Street address" />
-                        : <span>{profile.address || '—'}</span>}
-                    </Field>
-                  </div>
-                </div>
-
-                {/* Contact */}
-                <div>
-                  <h4 className="text-primary text-sm font-bold uppercase tracking-wider mb-4">Contact Information</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="Mobile Number">
-                      <span className="text-muted-foreground">+91 {profile.mobile}</span>
-                    </Field>
-                    <Field label="Alternate Mobile" editing={editing}>
-                      {editing
-                        ? <Input value={profile.alt_mobile || ''} onChange={e => update('alt_mobile', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="Alternative number" />
-                        : <span>{profile.alt_mobile || '—'}</span>}
-                    </Field>
-                    <Field label="Email ID" editing={editing}>
-                      {editing
-                        ? <Input type="email" value={profile.email || ''} onChange={e => update('email', e.target.value)} className="h-10 bg-background border-white/10 text-white" placeholder="your@email.com" />
-                        : <span>{profile.email || '—'}</span>}
-                    </Field>
-                  </div>
-                </div>
-
-                {/* About */}
-                <div>
-                  <h4 className="text-primary text-sm font-bold uppercase tracking-wider mb-4">About You</h4>
-                  <Field label="More Info About You" editing={editing}>
-                    {editing
-                      ? <Textarea value={profile.more_info || ''} onChange={e => update('more_info', e.target.value)} className="bg-background border-white/10 text-white min-h-[100px]" placeholder="Describe yourself, your experience, and anything relevant..." />
-                      : <span className="whitespace-pre-wrap">{profile.more_info || '—'}</span>}
-                  </Field>
-                </div>
-
-                {/* Membership */}
-                <div>
-                  <h4 className="text-primary text-sm font-bold uppercase tracking-wider mb-4">Membership & Payment</h4>
-                  <div className="grid grid-cols-1 gap-4">
-                    <Field label="Joining Plan" editing={editing}>
-                      {editing ? (
-                        <RadioGroup value={profile.joining_plan || ''} onValueChange={v => update('joining_plan', v)} className="flex flex-col gap-3">
-                          {JOINING_PLANS.map((plan, index) => {
-                            const id = `joining-plan-${index}`;
-
-                            return (
-                              <div key={plan.value} className="flex items-center gap-3 p-3 rounded-lg border border-white/10 cursor-pointer hover:border-primary/40">
-                                <RadioGroupItem value={plan.value} id={id} />
-                                <Label htmlFor={id} className="cursor-pointer flex-1">
-                                  <span className="text-white font-medium">{plan.title}</span>
-                                  <span className="block text-xs text-muted-foreground">{plan.description}</span>
-                                </Label>
-                              </div>
-                            );
-                          })}
-                        </RadioGroup>
-                      ) : (
-                        <span className={profile.joining_plan ? 'text-primary font-semibold' : ''}>{profile.joining_plan || '—'}</span>
-                      )}
-                    </Field>
-
-                    {editing && (
-                      <div className="flex items-start gap-2 p-3 bg-yellow-500/5 border border-yellow-500/20 rounded-lg">
-                        <AlertCircle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
-                        <p className="text-yellow-400 text-xs">I declare that I am above 18 years old and will present my ID proof to verify my profile.</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <ProfileFields profile={profile} editing={editing} update={update} />
 
               {/* Save button at bottom */}
               {editing && (
@@ -667,16 +436,6 @@ export default function Dashboard() {
           </motion.div>
         )}
       </div>
-    </div>
-  );
-}
-
-// Helper component
-function Field({ label, editing, children }: { label: string; editing?: boolean; children: React.ReactNode }) {
-  return (
-    <div>
-      <label className="block text-xs font-medium text-muted-foreground mb-1.5 uppercase tracking-wide">{label}</label>
-      <div className="text-white text-sm">{children}</div>
     </div>
   );
 }

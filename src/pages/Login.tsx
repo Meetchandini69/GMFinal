@@ -1,3 +1,4 @@
+import JoiningFeeNotice from '@/components/JoiningFeeNotice';
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Crown, KeyRound, LogIn } from 'lucide-react';
@@ -70,6 +71,7 @@ export default function Login() {
             </div>
           </div>
 
+          <JoiningFeeNotice />
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-sm font-medium text-white mb-2">Registered Mobile Number</label>
@@ -124,7 +126,7 @@ export default function Login() {
 
           <p className="text-center text-xs text-muted-foreground mt-6">
             Not yet a member?{' '}
-            <Link href="/" className="text-primary hover:underline font-medium">Register free →</Link>
+            <Link href="/free-registration" className="text-primary hover:underline font-medium">Register now →</Link>
           </p>
         </div>
       </div>

@@ -52,6 +52,9 @@ await pool.query(`
     created_at      TIMESTAMPTZ DEFAULT NOW()
   );
 
+  ALTER TABLE users ADD COLUMN IF NOT EXISTS email TEXT;
+  CREATE UNIQUE INDEX IF NOT EXISTS users_signup_email ON users (LOWER(email)) WHERE email IS NOT NULL;
+
   CREATE TABLE IF NOT EXISTS profiles (
     id              SERIAL PRIMARY KEY,
     user_id         INTEGER UNIQUE REFERENCES users(id),

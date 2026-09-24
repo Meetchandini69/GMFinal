@@ -1,4 +1,4 @@
-import { TEAM_TELEGRAM_LINK } from '@/lib/telegram';
+import JoiningFeeNotice from '@/components/JoiningFeeNotice';
 import PartnerSlider from '@/components/PartnerSlider';
 import React from 'react';
 import { Crown, Mail, MapPin, Heart } from 'lucide-react';
@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 export function Footer() {
   return (
     <>
+    <div className="container mx-auto px-4"><JoiningFeeNotice /></div>
     <PartnerSlider />
     <footer className="bg-[#050505] pt-20 pb-8 border-t border-white/10">
       <div className="container mx-auto px-4 md:px-6">
@@ -19,7 +20,7 @@ export function Footer() {
               </span>
             </a>
             <p className="text-muted-foreground text-sm mb-6 leading-relaxed">
-              India's most trusted Gigolo job platform. We connect lonely, verified women with charming men seeking to earn through companionship. Free registration. Complete privacy.
+              India's most trusted Gigolo job platform. We connect lonely, verified women with charming men seeking to earn through companionship. Joining fees apply. Complete privacy.
             </p>
             <div className="flex items-center gap-4">
               <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white hover:bg-primary hover:text-background cursor-pointer transition-colors">
@@ -72,7 +73,7 @@ export function Footer() {
             </div>
             <div>
               <Button className="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-background font-semibold" asChild>
-                <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer">Join on Telegram — Start Earning</a>
+                <a href="/free-registration">Join Now — Start Earning</a>
               </Button>
             </div>
           </div>

@@ -142,7 +142,7 @@ export function MemberGallery() {
             Women <span className="text-primary">Waiting for You</span> Right Now
           </h2>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Thousands of lonely, genuine women have posted profiles looking for a Gigolo. <strong className="text-white">Register free</strong> to see their full photos, phone numbers, and send a message today.
+            Thousands of lonely, genuine women have posted profiles looking for a Gigolo. <strong className="text-white">Register now</strong> and complete joining-fee payment to unlock photos and contact details.
           </p>
         </div>
 
@@ -232,11 +232,11 @@ export function MemberGallery() {
 
                 {/* CTA */}
                 <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90 font-semibold" asChild>
-                  <a href="#register">
+                  <a href="/free-registration">
                     <MessageCircle className="w-4 h-4 mr-2" /> Message Her
                   </a>
                 </Button>
-                <p className="text-[10px] text-muted-foreground text-center">Register free to unlock contact</p>
+                <p className="text-[10px] text-muted-foreground text-center">Joining-fee payment is required to unlock contact</p>
               </div>
             </motion.div>
           ))}
@@ -246,9 +246,9 @@ export function MemberGallery() {
         <div className="mt-14 text-center">
           <div className="inline-block bg-card border border-primary/20 rounded-2xl px-8 py-6 max-w-xl">
             <p className="text-white font-semibold text-lg mb-1">🔐 Full profiles & photos are members-only</p>
-            <p className="text-muted-foreground text-sm mb-5">Register for free in 2 minutes — see real photos, WhatsApp numbers, and start chatting today.</p>
+            <p className="text-muted-foreground text-sm mb-5">Choose a joining plan and create your profile. Photos and contact details unlock after payment is confirmed.</p>
             <Button size="lg" className="bg-primary text-primary-foreground font-bold text-base px-10 h-12" asChild>
-              <a href="#register">Create Free Account →</a>
+              <a href="/free-registration">Create Account →</a>
             </Button>
           </div>
         </div>

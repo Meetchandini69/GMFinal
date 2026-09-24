@@ -1,4 +1,3 @@
-import { TEAM_TELEGRAM_LINK } from '@/lib/telegram';
 import React, { useState, useEffect } from 'react';
 import { Crown, Menu, X, LogIn, KeyRound } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
@@ -118,7 +117,7 @@ export function Navbar() {
                   className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors gold-glow font-bold"
                   asChild
                 >
-                  <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
+                  <a href="/free-registration" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
                 </Button>
               </div>
             </nav>
@@ -154,7 +153,7 @@ export function Navbar() {
                 className="w-full bg-primary text-primary-foreground font-bold"
                 asChild
               >
-                <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
+                <a href="/free-registration" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
               </Button>
             </div>
           </div>
@@ -216,10 +215,10 @@ export function Navbar() {
               Not registered yet?{' '}
               <button
                 type="button"
-                onClick={() => { setIsLoginOpen(false); setTimeout(() => scrollTo('#register'), 100); }}
+                onClick={() => { setIsLoginOpen(false); navigate('/free-registration'); }}
                 className="text-primary hover:underline font-medium"
               >
-                Create free account →
+                Create account →
               </button>
             </p>
           </form>

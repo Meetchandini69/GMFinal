@@ -1,3 +1,5 @@
+import { registerSelfRegistration, signupNotifier } from './self-registration.js';
+import { postgresSignupStore } from './signup-store.js';
 import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
 import 'dotenv/config';
@@ -198,6 +200,8 @@ registerPartners(app, {
   },
   remove: async id => (await pool.query('DELETE FROM partners WHERE id=$1', [id])).rowCount,
 });
+
+registerSelfRegistration(app, { store: postgresSignupStore(pool), upload, notify: signupNotifier(TG_TOKEN, TG_CHAT), siteUrl: (process.env.SITE_URL || 'https://gigolomeet.in').replace(/\/+$/, '') });
 
 registerSubscriptionDetails(app, {
   requireAdmin, requireUser, upload,

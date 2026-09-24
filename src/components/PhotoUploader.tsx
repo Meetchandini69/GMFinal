@@ -33,11 +33,12 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area): Promise<Blob> {
 
 // ── Props ──────────────────────────────────────────────────────────────────
 interface PhotoUploaderProps {
+  uploadEndpoint?: string;
   currentUrl?: string;
   onUploadSuccess: (url: string) => void;
 }
 
-export default function PhotoUploader({ currentUrl, onUploadSuccess }: PhotoUploaderProps) {
+export default function PhotoUploader({ currentUrl, onUploadSuccess, uploadEndpoint = '/api/user/upload-photo' }: PhotoUploaderProps) {
   const [stage, setStage] = useState<'idle' | 'cropping' | 'uploading'>('idle');
   const [rawSrc, setRawSrc] = useState<string | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
@@ -79,7 +80,7 @@ export default function PhotoUploader({ currentUrl, onUploadSuccess }: PhotoUplo
       const blob = await getCroppedImg(rawSrc, croppedAreaPixels);
       const form = new FormData();
       form.append('photo', blob, 'profile.jpg');
-      const res = await apiFetch('/api/user/upload-photo', {
+      const res = await apiFetch(uploadEndpoint, {
         method: 'POST',
         body: form,
         credentials: 'include',

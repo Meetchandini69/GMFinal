@@ -1,3 +1,4 @@
+import JoiningFeeNotice from '@/components/JoiningFeeNotice';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { IndianRupee, Heart, MapPin, Users, ShieldCheck, Star } from 'lucide-react';
@@ -43,6 +44,7 @@ export function Hero() {
               🔥 2,400+ Women Waiting to Meet You Right Now
             </div>
 
+            <JoiningFeeNotice />
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-serif font-bold tracking-tight mb-6 leading-tight">
               Get Paid to Date{' '}
               <span className="text-gradient-gold">Beautiful Women</span>
@@ -53,7 +55,7 @@ export function Hero() {
             </p>
 
             <p className="text-sm text-primary/80 mb-10 font-medium">
-              ✅ Free Registration &nbsp;•&nbsp; ✅ Real Verified Women &nbsp;•&nbsp; ✅ Your City, Your Schedule
+              ✅ Paid Registration &nbsp;•&nbsp; ✅ Real Verified Women &nbsp;•&nbsp; ✅ Your City, Your Schedule
             </p>
           </motion.div>
 
@@ -155,11 +157,11 @@ export function Hero() {
               </div>
             ))}
             <div className="bg-primary/10 border border-primary/20 rounded-xl p-3 text-center text-sm text-primary font-medium">
-              🔐 Register free to see full profiles, photos & WhatsApp numbers
+              🔐 Joining fees are required to unlock photos and contact details
             </div>
             <Button className="w-full bg-primary text-primary-foreground font-bold text-base h-12" asChild>
-              <a href="#register" onClick={() => setIsOpen(false)}>
-                Register Free — See All Women →
+              <a href="/free-registration" onClick={() => setIsOpen(false)}>
+                Register Now — Choose Your Plan →
               </a>
             </Button>
           </div>

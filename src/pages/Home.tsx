@@ -22,7 +22,7 @@ export default function Home() {
     if (metaDescription) {
       metaDescription.setAttribute(
         "content",
-        "Register for a Gigolo job in India on Gigolomeet.in. Earn ₹50,000–₹2,00,000/month meeting divorced, single, and lonely women near you. Free registration. 100% private and discreet."
+        "Register for a Gigolo job in India on Gigolomeet.in. Earn ₹50,000–₹2,00,000/month meeting divorced, single, and lonely women near you. Joining fees apply. 100% private and discreet."
       );
     }
   }, []);
