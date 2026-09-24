@@ -1,3 +1,4 @@
+import { TEAM_TELEGRAM_LINK } from '@/lib/telegram';
 import PartnerSlider from '@/components/PartnerSlider';
 import React from 'react';
 import { Crown, Mail, MapPin, Heart } from 'lucide-react';
@@ -71,7 +72,7 @@ export function Footer() {
             </div>
             <div>
               <Button className="w-full bg-primary/10 border border-primary/30 text-primary hover:bg-primary hover:text-background font-semibold" asChild>
-                <a href="#register">Register Free — Start Earning</a>
+                <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer">Join on Telegram — Start Earning</a>
               </Button>
             </div>
           </div>

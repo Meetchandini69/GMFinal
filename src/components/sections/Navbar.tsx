@@ -1,3 +1,4 @@
+import { TEAM_TELEGRAM_LINK } from '@/lib/telegram';
 import React, { useState, useEffect } from 'react';
 import { Crown, Menu, X, LogIn, KeyRound } from 'lucide-react';
 import { apiFetch } from '@/lib/api';
@@ -35,6 +36,7 @@ export function Navbar() {
     if (href === '#') { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: 'smooth' });
+    else window.location.assign('/' + href);
   };
 
   const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -85,7 +87,7 @@ export function Navbar() {
       >
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between">
-            <a href="#" onClick={(e) => { e.preventDefault(); scrollTo('#'); }} className="w-50 h-15 flex items-center gap-2 group">
+            <a href="/" className="w-50 h-15 flex items-center gap-2 group">
               <img src="/logo.svg" alt="Gigolo Service" className="w-full h-full object-contain" />
             </a>
 
@@ -114,9 +116,9 @@ export function Navbar() {
                 </Button>
                 <Button
                   className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors gold-glow font-bold"
-                  onClick={(e) => { e.preventDefault(); scrollTo('#register'); }}
+                  asChild
                 >
-                  Join &amp; Earn Now 💰
+                  <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
                 </Button>
               </div>
             </nav>
@@ -150,9 +152,9 @@ export function Navbar() {
               </Button>
               <Button
                 className="w-full bg-primary text-primary-foreground font-bold"
-                onClick={(e) => { e.preventDefault(); scrollTo('#register'); }}
+                asChild
               >
-                Join &amp; Earn Now 💰
+                <a href={TEAM_TELEGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => setIsMobileMenuOpen(false)}>Join &amp; Earn Now 💰</a>
               </Button>
             </div>
           </div>

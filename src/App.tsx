@@ -1,3 +1,5 @@
+import FreeRegistration from './pages/FreeRegistration';
+import RegistrationThankYou from './pages/RegistrationThankYou';
 import { Switch, Route } from 'wouter';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -14,6 +16,8 @@ export default function App() {
   return (
     <Switch>
       <Route path="/" component={Home} />
+      <Route path="/free-registration" component={FreeRegistration} />
+      <Route path="/registration-thank-you" component={RegistrationThankYou} />
       <Route path="/login" component={Login} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />

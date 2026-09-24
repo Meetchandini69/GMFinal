@@ -5,8 +5,8 @@ import { UserPlus, Search, CalendarHeart, FileText, CheckCircle, Wallet } from '
 const GIGOLO_STEPS = [
   {
     icon: UserPlus,
-    title: "Register Free in 2 Min",
-    description: "Fill a simple form with your name, city, age, and a short bio. No fee, no documents needed to start. Your privacy is guaranteed from day one."
+    title: "Start on Telegram",
+    description: "Message our official team on Telegram first. We will guide you and send you the Free Registration page link to complete your details."
   },
   {
     icon: CheckCircle,
