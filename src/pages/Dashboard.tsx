@@ -1,4 +1,5 @@
 import JoiningFeeNotice from '@/components/JoiningFeeNotice';
+import SupportCall from '@/components/SupportCall';
 import ProfileFields, { type Profile } from '@/components/ProfileFields';
 import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
@@ -157,12 +158,15 @@ export default function Dashboard() {
 
       <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl">
         <JoiningFeeNotice />
-        {profile.user_id && <div className="rounded-2xl border-2 border-primary bg-primary/10 p-5 mb-8 text-center">
+        {profile.profile_url && <div className="rounded-2xl border-2 border-primary bg-primary/10 p-5 mb-8 text-center">
           <h2 className="text-xl font-bold text-white mb-2">Verify Your Profile on Telegram</h2>
           <p className="text-sm text-muted-foreground mb-4">Send your profile link from your Telegram account so our team can reply with verification and joining-fee instructions.</p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-5">
           <Button asChild className="motion-safe:animate-pulse gold-glow h-auto min-h-12 py-3 whitespace-normal font-bold">
-            <a href={`https://t.me/Gigolomeetofficial?text=${encodeURIComponent(`Hi I am interested in Gigolo service. Please verify my profile: ${window.location.origin}/member-profile/${profile.user_id}`)}`} target="_blank" rel="noopener noreferrer">Send Your Details on Telegram to Verify</a>
+            <a href={`https://t.me/Gigolomeetofficial?text=${encodeURIComponent(`Hi I am interested in Gigolo service. Please verify my profile: ${profile.profile_url}`)}`} target="_blank" rel="noopener noreferrer">Send Your Details on Telegram to Verify</a>
           </Button>
+          <SupportCall />
+          </div>
           <p className="text-xs text-muted-foreground mt-3">Tap Send in Telegram. Opening the chat does not automatically verify your profile or payment.</p>
         </div>}
 

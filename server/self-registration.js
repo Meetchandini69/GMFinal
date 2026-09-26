@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs';
+import { memberProfileUrl } from './profile-url.js';
 import { randomUUID } from 'node:crypto';
 
 export const signupPlans = ['1 Month Plan', '2 Months Plan', '6 Months Plan', '1 Year Plan'];
@@ -63,7 +64,7 @@ export function registerSelfRegistration(app, { store, upload, notify, siteUrl }
       await regenerate(req);
       req.session.userId = user.id; req.session.userMobile = draft.mobile;
       await persistSession(req);
-      const profileUrl = `${siteUrl}/member-profile/${user.id}`;
+      const profileUrl = memberProfileUrl(user.id, siteUrl);
       const notified = await send(`New member profile submitted\nName: ${profile.full_name}\nPhone: +91 ${draft.mobile}\nEmail: ${draft.email}\nCity: ${profile.city}\nPlan: ${draft.plan}\nProfile: ${profileUrl}\nAccount created; login enabled. Joining fees unpaid. Telegram verification pending.`);
       res.json({ ok: true, id: user.id, profile_url: profileUrl, notification_sent: notified });
     } catch (error) {

@@ -8,6 +8,7 @@ import bcrypt from 'bcryptjs';
 import multer from 'multer';
 import { registerSelfRegistration } from '../server/self-registration.js';
 import { sqliteSignupStore } from '../server/signup-store.js';
+import { memberProfileUrl } from '../server/profile-url.js';
 
 test('self-registration creates isolated unpaid accounts, preserves login and keeps passwords out of notifications', async () => {
   const db = new Database(':memory:');
@@ -23,6 +24,10 @@ test('self-registration creates isolated unpaid accounts, preserves login and ke
   // Exercise the actual existing SQLite login handler with the newly created account.
   const source = readFileSync(new URL('../server/index-sqlite.js', import.meta.url), 'utf8');
   new Function('app','db','bcrypt',source.slice(source.indexOf("app.post('/api/auth/login'"),source.indexOf('// Logout')))(app,db,bcrypt);
+  const profileRoute = source.slice(source.indexOf("app.get('/api/user/profile'"), source.indexOf("app.put('/api/user/profile'"));
+  new Function('app', 'db', 'requireUser', 'memberProfileUrl', profileRoute)(app, db,
+    (req, res, next) => req.session.userId ? next() : res.sendStatus(401),
+    id => memberProfileUrl(id, 'https://example.test/'));
   const server = app.listen(0, '127.0.0.1'); await new Promise(resolve => server.once('listening',resolve));
   const base = `http://127.0.0.1:${server.address().port}`;
   let cookie = '';
@@ -45,6 +50,10 @@ test('self-registration creates isolated unpaid accounts, preserves login and ke
     assert.equal((await call('/api/signup/complete',{...profile,date_of_birth:'2020-01-01'})).status,400);
     const completed=await call('/api/signup/complete',profile); assert.equal(completed.status,200);
     const result=await completed.json(); assert.equal(result.profile_url,'https://example.test/member-profile/1');
+    const panelProfile = await (await call('/api/user/profile')).json();
+    assert.equal(panelProfile.profile_url, result.profile_url);
+    assert.ok(notifications[1].includes(`Profile: ${panelProfile.profile_url}\n`));
+    assert.notEqual(new URL(panelProfile.profile_url).origin, base);
     const stored=await store.read(result.id);
     assert.equal(stored.subscription_status,'unpaid'); assert.equal(stored.member_status,'pending_review'); assert.equal(stored.profile_step,2);
     assert.equal(stored.email,credentials.email); assert.equal(stored.joining_plan,credentials.plan);

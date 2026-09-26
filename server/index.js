@@ -1,4 +1,5 @@
 import { registerSelfRegistration, signupNotifier } from './self-registration.js';
+import { memberProfileUrl } from './profile-url.js';
 import { postgresSignupStore } from './signup-store.js';
 import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
@@ -523,7 +524,7 @@ app.get('/api/user/profile', requireUser, async (req, res) => {
        WHERE p.user_id = $1`,
       [req.session.userId]
     );
-    res.json(rows[0] || {});
+    res.json(rows[0] ? { ...rows[0], profile_url: memberProfileUrl(req.session.userId) } : {});
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

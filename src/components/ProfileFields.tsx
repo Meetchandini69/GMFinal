@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import PhotoUploader from '@/components/PhotoUploader';
 import { getImageUrl } from '@/lib/api';
 export type Profile = {
+  profile_url?: string;
   user_id?: number;
   mobile?: string;
   full_name?: string;

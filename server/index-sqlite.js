@@ -1,4 +1,5 @@
 import { registerSelfRegistration, signupNotifier } from './self-registration.js';
+import { memberProfileUrl } from './profile-url.js';
 import { sqliteSignupStore } from './signup-store.js';
 import { registerPartners } from './partners.js';
 import { registerPaymentReceipts } from './payment-receipts.js';
@@ -343,7 +344,7 @@ app.get('/api/user/profile', requireUser, (req, res) => {
     JOIN users u ON u.id = p.user_id
     WHERE p.user_id = ?
   `).get(req.session.userId);
-  res.json(profile || {});
+  res.json(profile ? { ...profile, profile_url: memberProfileUrl(req.session.userId) } : {});
 });
 
 app.put('/api/user/profile', requireUser, (req, res) => {

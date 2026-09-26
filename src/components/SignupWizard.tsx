@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useLocation } from 'wouter';
 import ProfileFields, { type Profile } from '@/components/ProfileFields';
+import SupportCall from '@/components/SupportCall';
 import { apiFetch } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -83,6 +84,7 @@ export default function SignupWizard() {
         </fieldset>
       </form>}
       {stage === 'profile' && <fieldset disabled={busy}>
+        <div className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-3"><SupportCall /></div>
         <ProfileFields profile={profile} editing update={(key, value) => setProfile(p => ({ ...p, [key]: value }))} uploadEndpoint="/api/signup/photo" lockAccount />
         <label className="flex gap-3 items-start mt-6"><input type="checkbox" checked={adult} onChange={e => setAdult(e.target.checked)} className="mt-1" /><span>I confirm I am 18 or older and understand that joining fees are required for registration and access.</span></label>
         <Button disabled={busy || !adult} onClick={complete} className="w-full mt-6">{busy ? 'Creating your account...' : 'Submit Profile & Open My Panel'}</Button>
