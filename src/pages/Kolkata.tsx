@@ -194,14 +194,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 /* ─────────────────────────── page ─────────────────────────── */
 export default function Kolkata() {
   useEffect(() => {
-    document.title = "Gigolo Service in Kolkata | Call Boy & Male Escort Jobs — Gigolomeet.in";
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        "Premier gigolo service, call boy jobs & male escort opportunities in Kolkata. Meet women in Salt Lake, Ballygunge, Park Street. Earn ₹50K–₹2L/month. Joining fees apply. 100% private."
-      );
-    }
+
+
     window.scrollTo(0, 0);
   }, []);
 

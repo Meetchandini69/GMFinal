@@ -24,10 +24,10 @@ export default function App() {
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/admin" component={Admin} />
       <Route path="/admin/builder/:id" component={AdminPageBuilder} />
-      <Route path="/coimbatore" component={Coimbatore} />
-      <Route path="/kolkata" component={Kolkata} />
-      <Route path="/hyderabad" component={Hyderabad} />
-      <Route path="/:slug" component={LocationPage} />
+      <Route path="/coimbatore"><LocationPage fallback={<Coimbatore />} /></Route>
+      <Route path="/kolkata"><LocationPage fallback={<Kolkata />} /></Route>
+      <Route path="/hyderabad"><LocationPage fallback={<Hyderabad />} /></Route>
+      <Route path="/:slug"><LocationPage /></Route>
       <Route component={NotFound} />
     </Switch>
   );

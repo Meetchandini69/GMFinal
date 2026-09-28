@@ -15,6 +15,7 @@ test('self-registration creates isolated unpaid accounts, preserves login and ke
   const schema = readFileSync(new URL('../server/db-sqlite.js', import.meta.url), 'utf8');
   for (const table of ['submissions','users','profiles']) db.exec(schema.match(new RegExp(`CREATE TABLE IF NOT EXISTS ${table} \\([\\s\\S]*?\\);`))[0]);
   db.exec('ALTER TABLE users ADD COLUMN email TEXT; CREATE UNIQUE INDEX users_signup_email ON users(LOWER(email));');
+  db.exec('ALTER TABLE submissions ADD COLUMN telegram_username TEXT');
   const notifications = [];
   const app = express(); app.use(express.json());
   app.use(session({ secret: 'test-only-registration-secret', resave: false, saveUninitialized: false }));
@@ -36,19 +37,23 @@ test('self-registration creates isolated unpaid accounts, preserves login and ke
     if (useCookie && r.headers.get('set-cookie')) cookie=r.headers.get('set-cookie').split(';')[0];
     return r;
   };
-  const credentials = { mobile:'9876543210',email:'member@example.test',password:'Testing!123',confirm_password:'Testing!123',plan:'1 Month Plan' };
+  const credentials = { mobile:'9876543210',telegram_username:' @test_member ',email:'member@example.test',password:'Testing!123',confirm_password:'Testing!123',plan:'1 Month Plan' };
   const profile = { full_name:'Test Member',category:'Gigolo',date_of_birth:'1995-01-01',state:'Tamil Nadu',city:'Chennai',adult_confirmed:true,subscription_status:'paid',member_status:'active',email:'tampered@example.test',joining_plan:'1 Year Plan' };
   try {
     assert.equal((await call('/api/signup/complete',profile)).status,401);
+    for (const telegram_username of [undefined, '', '@bad!', '12345', 'a'.repeat(33), { username: 'test_member' }]) {
+      assert.equal((await call('/api/signup/start',{...credentials,telegram_username})).status,400);
+    }
     assert.equal((await call('/api/signup/start',{...credentials,confirm_password:'wrong'})).status,400);
     assert.equal((await call('/api/signup/start',{...credentials,plan:'free'})).status,400);
     assert.equal((await call('/api/signup/start',credentials)).status,200);
     assert.equal(db.prepare('SELECT COUNT(*) n FROM users').get().n,0);
     const draft=await (await call('/api/signup/draft')).json();
+    assert.equal(draft.telegram_username,'test_member');
     assert.equal(draft.email,credentials.email); assert.equal(draft.hash,undefined); assert.equal(draft.password,undefined);
     assert.equal(notifications.length,1); assert.ok(!notifications[0].includes(credentials.password));
     assert.equal((await call('/api/signup/complete',{...profile,date_of_birth:'2020-01-01'})).status,400);
-    const completed=await call('/api/signup/complete',profile); assert.equal(completed.status,200);
+    const completed=await call('/api/signup/complete',{...profile,telegram_username:'tampered_user'}); assert.equal(completed.status,200);
     const result=await completed.json(); assert.equal(result.profile_url,'https://example.test/member-profile/1');
     const panelProfile = await (await call('/api/user/profile')).json();
     assert.equal(panelProfile.profile_url, result.profile_url);
@@ -58,12 +63,14 @@ test('self-registration creates isolated unpaid accounts, preserves login and ke
     assert.equal(stored.subscription_status,'unpaid'); assert.equal(stored.member_status,'pending_review'); assert.equal(stored.profile_step,2);
     assert.equal(stored.email,credentials.email); assert.equal(stored.joining_plan,credentials.plan);
     assert.equal(db.prepare('SELECT status FROM submissions').get().status,'approved');
+    assert.equal(db.prepare('SELECT telegram_username FROM submissions').get().telegram_username,'test_member');
     const user=db.prepare('SELECT * FROM users').get(); assert.equal(user.is_active,1); assert.notEqual(user.password_hash,credentials.password); assert.ok(await bcrypt.compare(credentials.password,user.password_hash));
     assert.equal((await call('/api/member-profile/1')).status,200);
     assert.equal((await call('/api/member-profile/1',null,false)).status,403);
     assert.equal((await call('/api/member-profile/2')).status,403);
     assert.equal((await call('/api/signup/complete',profile)).status,401);
     assert.equal(notifications.length,2); assert.ok(notifications.every(n=>!n.includes(credentials.password)));
+    assert.ok(notifications.every(n=>n.includes('Telegram ID: @test_member\n')));
     cookie=''; assert.equal((await call('/api/auth/login',{mobile:credentials.mobile,password:credentials.password})).status,200);
     assert.equal((await call('/api/member-profile/1')).status,200);
     cookie=''; assert.equal((await call('/api/signup/start',credentials)).status,409);

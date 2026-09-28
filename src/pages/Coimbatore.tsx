@@ -194,14 +194,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 /* ─────────────────────────── page ─────────────────────────── */
 export default function Coimbatore() {
   useEffect(() => {
-    document.title = "Gigolo Service in Coimbatore | Call Boy & Male Escort Jobs — Gigolomeet.in";
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        "Premier gigolo service, call boy jobs & male escort opportunities in Coimbatore. Meet women in RS Puram, Gandhipuram, Peelamedu. Earn ₹50K–₹2L/month. Joining fees apply. 100% private."
-      );
-    }
+
+
     window.scrollTo(0, 0);
   }, []);
 

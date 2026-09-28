@@ -13,11 +13,13 @@ export function registerSelfRegistration(app, { store, upload, notify, siteUrl }
   app.get('/api/signup/draft', (req, res) => {
     res.set('Cache-Control', 'no-store');
     const draft = currentDraft(req);
-    res.json(draft ? { mobile: draft.mobile, email: draft.email, joining_plan: draft.plan, photo_url: draft.photo || '' } : null);
+    res.json(draft ? { mobile: draft.mobile, email: draft.email, telegram_username: draft.telegram_username || '', joining_plan: draft.plan, photo_url: draft.photo || '' } : null);
   });
   app.post('/api/signup/start', async (req, res) => {
     if (req.session.userId || req.session.isAdmin) return res.status(409).json({ error: 'Log out before creating a new account.' });
-    const { mobile, email, password, confirm_password, plan } = req.body;
+    const { mobile, telegram_username, email, password, confirm_password, plan } = req.body;
+    const cleanTelegramUsername = typeof telegram_username === 'string' ? telegram_username.trim().replace(/^@/, '') : '';
+    if (!/^[a-zA-Z][a-zA-Z0-9_]{4,31}$/.test(cleanTelegramUsername)) return res.status(400).json({ error: 'Enter your Telegram username (5 to 32 letters, numbers or underscores, starting with a letter).' });
     if (typeof mobile !== 'string' || !/^[6-9]\d{9}$/.test(mobile.trim())) return res.status(400).json({ error: 'Enter a valid 10-digit phone number.' });
     if (typeof email !== 'string' || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return res.status(400).json({ error: 'Enter a valid email address.' });
     if (typeof password !== 'string' || password.length < 8 || Buffer.byteLength(password) > 72 || password !== confirm_password) return res.status(400).json({ error: 'Use a password of at least 8 characters (up to 72 bytes), and confirm it correctly.' });
@@ -27,11 +29,11 @@ export function registerSelfRegistration(app, { store, upload, notify, siteUrl }
       if (await store.duplicate(cleanMobile, cleanEmail)) return res.status(409).json({ error: 'This phone number or email is already registered. Log in or contact our team.' });
       const previous = currentDraft(req);
       if (previous && Date.now() - previous.created < 15000) return res.status(429).json({ error: 'Please wait a moment before resubmitting your account details.' });
-      const draft = { ref: randomUUID(), mobile: cleanMobile, email: cleanEmail, plan, hash: await bcrypt.hash(password, 12), created: Date.now() };
+      const draft = { ref: randomUUID(), mobile: cleanMobile, telegram_username: cleanTelegramUsername, email: cleanEmail, plan, hash: await bcrypt.hash(password, 12), created: Date.now() };
       await regenerate(req);
       req.session.signupDraft = draft;
       await persistSession(req);
-      const notified = await send(`Registration started (Step 1)\nReference: ${draft.ref}\nPhone: +91 ${draft.mobile}\nEmail: ${draft.email}\nPlan: ${draft.plan}\nProfile not submitted yet. Joining fees pending. Password is stored securely and is not shared.`);
+      const notified = await send(`Registration started (Step 1)\nReference: ${draft.ref}\nPhone: +91 ${draft.mobile}\nTelegram ID: ${draft.telegram_username ? `@${draft.telegram_username}` : "Not provided"}\nEmail: ${draft.email}\nPlan: ${draft.plan}\nProfile not submitted yet. Joining fees pending. Password is stored securely and is not shared.`);
       res.json({ ok: true, notification_sent: notified });
     } catch { res.status(500).json({ error: 'Unable to start registration. Please try again.' }); }
   });
@@ -65,7 +67,7 @@ export function registerSelfRegistration(app, { store, upload, notify, siteUrl }
       req.session.userId = user.id; req.session.userMobile = draft.mobile;
       await persistSession(req);
       const profileUrl = memberProfileUrl(user.id, siteUrl);
-      const notified = await send(`New member profile submitted\nName: ${profile.full_name}\nPhone: +91 ${draft.mobile}\nEmail: ${draft.email}\nCity: ${profile.city}\nPlan: ${draft.plan}\nProfile: ${profileUrl}\nAccount created; login enabled. Joining fees unpaid. Telegram verification pending.`);
+      const notified = await send(`New member profile submitted\nName: ${profile.full_name}\nPhone: +91 ${draft.mobile}\nTelegram ID: ${draft.telegram_username ? `@${draft.telegram_username}` : "Not provided"}\nEmail: ${draft.email}\nCity: ${profile.city}\nPlan: ${draft.plan}\nProfile: ${profileUrl}\nAccount created; login enabled. Joining fees unpaid. Telegram verification pending.`);
       res.json({ ok: true, id: user.id, profile_url: profileUrl, notification_sent: notified });
     } catch (error) {
       if (error.code === 'DUPLICATE' || error.code === '23505' || String(error.code).startsWith('SQLITE_CONSTRAINT')) return res.status(409).json({ error: 'This phone number or email is already registered. Please log in.' });

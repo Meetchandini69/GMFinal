@@ -277,6 +277,11 @@ export default function AdminPageBuilder() {
 
       <div className="container mx-auto px-4 md:px-6 py-8 max-w-4xl space-y-4">
         {error && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>}
+        <label className="flex items-center gap-3 text-sm text-white">
+          <input type="checkbox" checked={page.is_active} onChange={e => setPage(prev => prev ? { ...prev, is_active: e.target.checked } : prev)} className="accent-primary" />
+          Publish edited content (apply with Save)
+        </label>
+        {['coimbatore', 'hyderabad', 'kolkata'].includes(page.slug) && <p className="text-xs text-muted-foreground">Publishing uses this page builder's editable city-page template at the existing URL. While unpublished, the original built-in page remains visible.</p>}
 
         <SectionCard title="Hero" subtitle="Top of page — headline and intro paragraph">
           <RichField label="Hero description" value={page.hero_description} onChange={html => setPage(prev => prev && { ...prev, hero_description: html })} />

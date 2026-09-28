@@ -4,7 +4,7 @@ import { Navbar, Footer } from '@/components/sections';
 import { Button } from '@/components/ui/button';
 
 export default function RegistrationThankYou() {
-  useEffect(() => { document.title = 'Thank You for Registering | GigoloMeet'; window.scrollTo(0, 0); }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return <div className="min-h-screen bg-background text-foreground">
     <Navbar />
     <main className="pt-36 pb-24 px-4 md:px-6">

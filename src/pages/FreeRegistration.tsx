@@ -4,7 +4,7 @@ import SignupWizard from '@/components/SignupWizard';
 import JoiningFeeNotice from '@/components/JoiningFeeNotice';
 
 export default function FreeRegistration() {
-  useEffect(() => { document.title = 'Registration | GigoloMeet'; window.scrollTo(0, 0); }, []);
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   return <div className="min-h-screen bg-background text-foreground">
     <Navbar />
     <main className="pt-32 pb-20 px-4 md:px-6">

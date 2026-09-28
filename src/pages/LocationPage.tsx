@@ -72,7 +72,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
   );
 }
 
-export default function LocationPage() {
+export default function LocationPage({ fallback }: { fallback?: React.ReactNode } = {}) {
   const [, params] = useRoute('/:slug');
   const [page, setPage] = useState<LocationPageData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -97,11 +97,8 @@ export default function LocationPage() {
 
   useEffect(() => {
     if (!page) return;
-    document.title = page.title;
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription && page.meta_description) {
-      metaDescription.setAttribute('content', page.meta_description);
-    }
+
+
     window.scrollTo(0, 0);
   }, [page]);
 
@@ -112,6 +109,8 @@ export default function LocationPage() {
       </div>
     );
   }
+
+  if ((notFound || !page) && fallback) return <>{fallback}</>;
 
   if (notFound || !page) {
     return (

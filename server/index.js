@@ -1,3 +1,4 @@
+import { registerPageSeo } from './page-seo.js';
 import { registerSelfRegistration, signupNotifier } from './self-registration.js';
 import { memberProfileUrl } from './profile-url.js';
 import { postgresSignupStore } from './signup-store.js';
@@ -190,6 +191,14 @@ registerPaymentReceipts(app, {
   read: async id => (await pool.query('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = $1', [id])).rows[0],
   save: async (id, type, image) => pool.query('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES ($1, $2, $3) ON CONFLICT (user_id) DO UPDATE SET mime_type = EXCLUDED.mime_type, image_data = EXCLUDED.image_data', [id, type, image]),
 });
+
+registerPageSeo(app, { requireAdmin, store: {
+  read: async path => (await pool.query('SELECT data FROM page_seo WHERE path=$1', [path])).rows[0],
+  list: async () => (await pool.query('SELECT path FROM page_seo')).rows,
+  save: async (path, data) => pool.query('INSERT INTO page_seo (path,data) VALUES ($1,$2) ON CONFLICT(path) DO UPDATE SET data=excluded.data', [path,data]),
+  location: async slug => (await pool.query('SELECT title,city,state,meta_description FROM location_pages WHERE slug=$1 AND is_active=TRUE', [slug])).rows[0],
+  locations: async () => (await pool.query('SELECT slug FROM location_pages')).rows,
+} });
 
 registerPartners(app, {
   requireAdmin,

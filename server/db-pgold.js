@@ -16,6 +16,8 @@ export const query = (text, params) => pool.query(text, params);
 // Create tables on startup
 await pool.query(`
 
+  CREATE TABLE IF NOT EXISTS page_seo (path TEXT PRIMARY KEY, data TEXT NOT NULL DEFAULT '{}');
+
   CREATE TABLE IF NOT EXISTS partners (
     id SERIAL PRIMARY KEY,
     alt TEXT NOT NULL,

@@ -1,11 +1,35 @@
 // Bundled into dist/_worker.js by Vite for Cloudflare Pages.
 const buildOrigin = '__BACKEND_ORIGIN__';
+const siteOrigin = '__SITE_ORIGIN__';
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith('/api/') && !url.pathname.startsWith('/uploads/')) {
-      return env.ASSETS.fetch(request);
+      const asset = await env.ASSETS.fetch(request);
+      if (!asset.headers.get('content-type')?.includes('text/html')) return asset;
+      let metadata;
+      let status = asset.status;
+      try {
+        const pathname = seoPath(url.pathname);
+          const api = new URL(env.API_ORIGIN || buildOrigin);
+          if (api.protocol !== 'https:' || api.origin === url.origin || api.username || api.password) throw new Error();
+          api.pathname = '/api/page-seo'; api.search = ''; api.searchParams.set('path', pathname);
+          const response = await fetch(api, { signal: AbortSignal.timeout(5000), headers: { Accept: 'application/json' } });
+          if (!response.ok) throw new Error();
+          metadata = await response.json();
+          if (!metadata.found) status = 404;
+      } catch {
+        status = 503;
+        metadata = resolveSeo('/', null, {}, env.SITE_URL || siteOrigin);
+        metadata.title = 'Page temporarily unavailable | GigoloMeet';
+        metadata.robots = 'noindex, nofollow';
+      }
+      const headers = new Headers(asset.headers);
+      headers.delete('content-length'); headers.delete('etag'); headers.delete('content-encoding');
+      headers.set('Cache-Control', 'no-store');
+      if (status === 503) headers.set('Retry-After', '60');
+      return new Response(request.method === 'HEAD' ? null : renderSeoHtml(await asset.text(), metadata), { status, headers });
     }
     let upstream;
     try {

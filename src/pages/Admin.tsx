@@ -1,3 +1,4 @@
+import PageSeoEditor from '@/components/PageSeoEditor';
 import PartnersEditor from '@/components/PartnersEditor';
 import PaymentRequests, { type PaymentRequest } from '@/components/PaymentRequests';
 import PaymentReceipt from '@/components/PaymentReceipt';
@@ -97,6 +98,7 @@ type LocationPage = {
   areas: string[];
   is_active: boolean;
   isTemplate?: boolean;
+  sections?: import('@/lib/locationSections').PageSections;
 };
 
 const LOCATION_TEMPLATES: LocationPage[] = [
@@ -170,8 +172,8 @@ function LocationPageEditor({
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center"><Globe className="w-4 h-4 text-primary" /></div>
             <div>
-              <h3 className="text-white font-bold">{initial.id ? 'Edit Location Page' : 'Clone Location Page'}</h3>
-              <p className="text-muted-foreground text-xs">Set the public URL, then use "Edit with Builder" to customize page content.</p>
+              <h3 className="text-white font-bold">{initial.isTemplate ? 'Edit Built-in Page' : initial.id ? 'Edit Location Page' : 'Clone Location Page'}</h3>
+              <p className="text-muted-foreground text-xs">{initial.isTemplate ? "Save published edits at this existing URL using the editable city-page template. Unpublished edits keep the original page visible." : 'Set the public URL, then use "Edit with Builder" to customize page content.'}</p>
             </div>
           </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-white"><X className="w-5 h-5" /></button>
@@ -187,7 +189,7 @@ function LocationPageEditor({
               <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">URL slug *</label>
               <div className="flex items-center">
                 <span className="h-10 inline-flex items-center px-2 rounded-l-md border border-r-0 border-white/10 bg-background text-muted-foreground text-sm">/</span>
-                <Input value={form.slug} onChange={e => update('slug', e.target.value)} className="h-10 rounded-l-none bg-background border-white/10 text-white" placeholder="e.g. chennai" />
+                <Input disabled={initial.isTemplate} value={form.slug} onChange={e => update('slug', e.target.value)} className="h-10 rounded-l-none bg-background border-white/10 text-white" placeholder="e.g. chennai" />
               </div>
             </div>
             <div>
@@ -207,6 +209,10 @@ function LocationPageEditor({
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">SEO meta description</label>
             <Textarea value={form.meta_description} onChange={e => update('meta_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[65px]" />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Hero description</label>
+            <Textarea value={form.hero_description} onChange={e => update('hero_description', e.target.value)} className="bg-background border-white/10 text-white min-h-[90px]" />
           </div>
           <div>
             <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1.5">Service areas</label>
@@ -430,7 +436,7 @@ export default function Admin() {
   const [authLoading, setAuthLoading] = useState(false);
 
   // top-level tab
-  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations' | 'subscription' | 'payments' | 'partners'>('submissions');
+  const [mainTab, setMainTab] = useState<'submissions' | 'women' | 'locations' | 'subscription' | 'payments' | 'partners' | 'seo'>('submissions');
 
   const [paymentRequests, setPaymentRequests] = useState<PaymentRequest[]>([]);
   const [paymentError, setPaymentError] = useState('');
@@ -717,6 +723,28 @@ export default function Admin() {
     await loadLocationPages();
   };
 
+  const [builtInBusy, setBuiltInBusy] = useState<string | null>(null);
+  const [builtInError, setBuiltInError] = useState('');
+  const builtInPages = LOCATION_TEMPLATES.map(template => ({ ...template, ...locationPages.find(page => page.slug === template.slug), isTemplate: true }));
+  const clonedPages = locationPages.filter(page => !LOCATION_TEMPLATES.some(template => template.slug === page.slug));
+  const editBuiltInWithBuilder = async (page: LocationPage) => {
+    setBuiltInBusy(page.slug); setBuiltInError('');
+    try {
+      let id = page.id;
+      if (!id) {
+        const res = await apiFetch('/api/admin/location-pages', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...page, is_active: false }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Unable to open page builder.');
+        id = data.id;
+      }
+      navigate(`/admin/builder/${id}`);
+    } catch (error) { setBuiltInError((error as Error).message); }
+    finally { setBuiltInBusy(null); }
+  };
+
   const cloneLocationPage = (page: LocationPage) => {
     const baseSlug = page.slug.replace(/-copy(?:-\d+)?$/, '');
     setLocationEditor({
@@ -834,7 +862,7 @@ export default function Admin() {
               size="sm"
               variant="outline"
               onClick={mainTab === 'payments' ? loadPaymentRequests : mainTab === 'submissions' ? loadSubmissions : mainTab === 'women' ? loadWomen : loadLocationPages}
-              hidden={mainTab === 'subscription' || mainTab === 'partners'}
+              hidden={mainTab === 'subscription' || mainTab === 'partners' || mainTab === 'seo'}
             >
               Refresh
             </Button>
@@ -849,6 +877,7 @@ export default function Admin() {
 
         {/* ── Main tabs ── */}
         <div className="flex flex-wrap gap-2 mb-8">
+          <button onClick={() => setMainTab('seo')} className={`px-5 py-2.5 rounded-full text-sm font-semibold ${mainTab === 'seo' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground'}`}>Page SEO</button>
           <button onClick={() => setMainTab('partners')} className={`px-5 py-2.5 rounded-full text-sm font-semibold ${mainTab === 'partners' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground'}`}>Partners</button>
           <button onClick={() => setMainTab('payments')} className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-colors ${mainTab === 'payments' ? 'bg-primary text-black' : 'bg-white/5 text-muted-foreground hover:bg-white/10'}`}>
             <CreditCard className="w-4 h-4" /> Payment Initiated
@@ -881,6 +910,7 @@ export default function Admin() {
         </div>
 
         {/* ══════════════ SUBMISSIONS TAB ══════════════ */}
+        {mainTab === 'seo' && <PageSeoEditor />}
         {mainTab === 'partners' && <PartnersEditor />}
         {mainTab === 'subscription' && <SubscriptionDetailsEditor />}
         {mainTab === 'payments' && <>
@@ -1289,18 +1319,23 @@ export default function Admin() {
                 <FileText className="w-4 h-4 text-primary" />
                 <h3 className="text-white font-semibold">Built-in pages</h3>
               </div>
+              {builtInError && <p role="alert" className="text-red-400 text-sm mb-3">{builtInError}</p>}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {LOCATION_TEMPLATES.map(template => (
+                {builtInPages.map(template => (
                   <div key={template.slug} className="bg-card border border-white/10 rounded-xl p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-white font-semibold">{template.city}</p>
                         <p className="text-muted-foreground text-xs mt-1">/{template.slug}</p>
                       </div>
-                      <span className="text-[10px] px-2 py-0.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-400">Live</span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full border border-green-400/30 bg-green-400/10 text-green-400">{template.id && template.is_active ? 'Edited page live' : 'Original live'}</span>
                     </div>
                     <p className="text-muted-foreground text-xs mt-3 line-clamp-2">{template.hero_description}</p>
-                    <Button size="sm" className="w-full mt-4 bg-primary text-black font-semibold" onClick={() => cloneLocationPage(template)}>
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <Button size="sm" variant="outline" disabled={locationsLoading || !!builtInBusy} onClick={() => setLocationEditor(template)}><Pencil className="w-3.5 h-3.5 mr-1" />Edit</Button>
+                      <Button size="sm" className="bg-primary text-black" disabled={locationsLoading || !!builtInBusy} onClick={() => editBuiltInWithBuilder(template)}>{builtInBusy === template.slug ? 'Opening...' : 'Edit with Builder'}</Button>
+                    </div>
+                    <Button size="sm" variant="outline" disabled={locationsLoading || !!builtInBusy} className="w-full mt-3" onClick={() => cloneLocationPage(template)}>
                       <Copy className="w-3.5 h-3.5 mr-1.5" /> Clone Page
                     </Button>
                   </div>
@@ -1317,7 +1352,7 @@ export default function Admin() {
                 <div className="flex justify-center py-12">
                   <div className="h-8 w-8 rounded-full border-2 border-primary border-t-transparent animate-spin" />
                 </div>
-              ) : locationPages.length === 0 ? (
+              ) : clonedPages.length === 0 ? (
                 <div className="text-center py-12 bg-card border border-white/10 rounded-xl text-muted-foreground">
                   <Globe className="w-10 h-10 mx-auto mb-3 opacity-30" />
                   <p>No cloned location pages yet.</p>
@@ -1325,7 +1360,7 @@ export default function Admin() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {locationPages.map(page => (
+                  {clonedPages.map(page => (
                     <div key={page.id} className="bg-card border border-white/10 rounded-xl p-4 flex flex-col md:flex-row md:items-center gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">

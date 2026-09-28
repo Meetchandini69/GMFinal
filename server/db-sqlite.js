@@ -17,6 +17,8 @@ db.pragma('foreign_keys = ON');
 // ── Schema ─────────────────────────────────────────────────────────────────
 db.exec(`
 
+  CREATE TABLE IF NOT EXISTS page_seo (path TEXT PRIMARY KEY, data TEXT NOT NULL DEFAULT '{}');
+
   CREATE TABLE IF NOT EXISTS partners (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     alt TEXT NOT NULL,

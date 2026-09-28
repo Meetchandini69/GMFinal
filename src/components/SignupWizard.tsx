@@ -11,7 +11,7 @@ export default function SignupWizard() {
   const [, navigate] = useLocation();
   const [stage, setStage] = useState<'plan' | 'account' | 'profile'>('plan');
   const [plan, setPlan] = useState('');
-  const [account, setAccount] = useState({ mobile: '', email: '', password: '', confirm_password: '' });
+  const [account, setAccount] = useState({ mobile: '', telegram_username: '', email: '', password: '', confirm_password: '' });
   const [profile, setProfile] = useState<Profile>({});
   const [adult, setAdult] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -76,6 +76,10 @@ export default function SignupWizard() {
         <p className="text-primary font-semibold">Selected plan: {plan}</p>
         <fieldset disabled={busy} className="space-y-4">
           <label className="block">Telegram phone number<Input required type="tel" inputMode="numeric" pattern="[6-9][0-9]{9}" maxLength={10} value={account.mobile} onChange={e => setAccount(a => ({ ...a, mobile: e.target.value.replace(/\D/g, '') }))} placeholder="10-digit Indian phone number" autoComplete="tel-national" /></label>
+          <div>
+            <label className="block">Telegram ID (Username)<Input required value={account.telegram_username} onChange={e => setAccount(a => ({ ...a, telegram_username: e.target.value }))} placeholder="@your_username" maxLength={33} pattern="@?[a-zA-Z][a-zA-Z0-9_]{4,31}" title="Enter your Telegram username: 5 to 32 letters, numbers or underscores, starting with a letter." autoCapitalize="none" spellCheck={false} aria-describedby="telegram-username-help" /></label>
+            <p id="telegram-username-help" className="text-sm text-muted-foreground mt-2">Find your username in Telegram Settings. Enter your username, not your display name.</p>
+          </div>
           <label className="block">Email<Input required type="email" maxLength={254} value={account.email} onChange={e => setAccount(a => ({ ...a, email: e.target.value }))} autoComplete="email" /></label>
           <label className="block">Password<Input required type="password" minLength={8} maxLength={72} value={account.password} onChange={e => setAccount(a => ({ ...a, password: e.target.value }))} autoComplete="new-password" /></label>
           <label className="block">Confirm password<Input required type="password" value={account.confirm_password} onChange={e => setAccount(a => ({ ...a, confirm_password: e.target.value }))} autoComplete="new-password" /></label>

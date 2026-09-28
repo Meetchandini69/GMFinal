@@ -1,3 +1,4 @@
+import { registerPageSeo } from './page-seo.js';
 import { registerSelfRegistration, signupNotifier } from './self-registration.js';
 import { memberProfileUrl } from './profile-url.js';
 import { sqliteSignupStore } from './signup-store.js';
@@ -121,6 +122,14 @@ registerPaymentReceipts(app, {
   read: async id => db.prepare('SELECT mime_type, image_data FROM payment_receipts WHERE user_id = ?').get(id),
   save: async (id, type, image) => db.prepare('INSERT INTO payment_receipts (user_id, mime_type, image_data) VALUES (?, ?, ?) ON CONFLICT (user_id) DO UPDATE SET mime_type = excluded.mime_type, image_data = excluded.image_data').run(id, type, image),
 });
+
+registerPageSeo(app, { requireAdmin, store: {
+  read: async path => db.prepare('SELECT data FROM page_seo WHERE path=?').get(path),
+  list: async () => db.prepare('SELECT path FROM page_seo').all(),
+  save: async (path, data) => db.prepare('INSERT INTO page_seo (path,data) VALUES (?,?) ON CONFLICT(path) DO UPDATE SET data=excluded.data').run(path,data),
+  location: async slug => db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='location_pages'").get() ? db.prepare('SELECT title,city,state,meta_description FROM location_pages WHERE slug=? AND is_active=1').get(slug) : null,
+  locations: async () => db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='location_pages'").get() ? db.prepare('SELECT slug FROM location_pages').all() : [],
+} });
 
 registerPartners(app, {
   requireAdmin,

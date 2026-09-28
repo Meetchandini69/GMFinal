@@ -194,14 +194,8 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 /* ─────────────────────────── page ─────────────────────────── */
 export default function Hyderabad() {
   useEffect(() => {
-    document.title = "Gigolo Service in Hyderabad | Call Boy & Male Escort Jobs — Gigolomeet.in";
-    const metaDescription = document.querySelector('meta[name="description"]');
-    if (metaDescription) {
-      metaDescription.setAttribute(
-        "content",
-        "Premier gigolo service, call boy jobs & male escort opportunities in Hyderabad. Meet women in Banjara Hills, Jubilee Hills, Hitech City. Earn ₹50K–₹2L/month. Joining fees apply. 100% private."
-      );
-    }
+
+
     window.scrollTo(0, 0);
   }, []);
 
